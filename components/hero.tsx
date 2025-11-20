@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { InterviewReadinessCard } from "./cards/interview-readiness-card";
 import { ResumeScoreCard } from "./cards/resume-score-card";
 import { SkillsAnalysisCard } from "./cards/skills-analysis-card";
@@ -125,26 +126,70 @@ export default function Hero({ children }: HeroProps) {
       />
 
       <div className="relative z-10 text-center shrink-0 px-4">
-        <h1
+        <motion.h1
           ref={heroRef}
           className="hero-title text-3xl sm:text-4xl md:text-5xl lg:text-[48px] leading-tight font-semibold text-black"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: { transition: { staggerChildren: 0.05 } },
+          }}
         >
-          Be the Candidate <br /> Companies Can’t Ignore
-        </h1>
+          {Array.from("Be the Candidate").map((char, i) => (
+            <motion.span
+              key={`l1-${i}`}
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 },
+              }}
+              className="inline-block"
+            >
+              {char === " " ? "\u00A0" : char}
+            </motion.span>
+          ))}
+          <br />
+          {Array.from("Companies Can’t Ignore").map((char, i) => (
+            <motion.span
+              key={`l2-${i}`}
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 },
+              }}
+              className="inline-block"
+            >
+              {char === " " ? "\u00A0" : char}
+            </motion.span>
+          ))}
+        </motion.h1>
 
-        <p className="mt-6 text-gray-400 max-w-2xl mx-auto text-base sm:text-sm">
+        <motion.p
+          className="mt-6 text-gray-400 max-w-2xl mx-auto text-base sm:text-sm"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1, duration: 0.5 }}
+        >
           AI platform that helps students improve their resume, practice
           interviews, and boost their shortlist chances
-        </p>
+        </motion.p>
 
-        <div className="mt-8 flex items-center justify-center gap-6">
+        <motion.div
+          className="mt-8 flex items-center justify-center gap-6"
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{
+            delay: 1.2,
+            type: "spring",
+            stiffness: 200,
+            damping: 15,
+          }}
+        >
           <a
             href="#"
             className="inline-flex items-center justify-center bg-[#F86510] text-white px-6 py-3 rounded-full shadow-lg text-sm font-medium hover:shadow-xl transition"
           >
             Try free for 14 days
           </a>
-        </div>
+        </motion.div>
       </div>
 
       {/* Mobile Card Display (Fan-like at bottom) */}
@@ -156,7 +201,13 @@ export default function Hero({ children }: HeroProps) {
               transform: "translateX(-50%) translateX(-150px) rotate(-20deg)",
             }}
           >
-            <RecentActivityCard />
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring" }}
+            >
+              <RecentActivityCard />
+            </motion.div>
           </div>
           {/* Left Card - Interview Readiness */}
           <div
@@ -165,7 +216,13 @@ export default function Hero({ children }: HeroProps) {
               transform: "translateX(-50%) translateX(-150px) rotate(-20deg)",
             }}
           >
-            <InterviewReadinessCard />
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.4, type: "spring" }}
+            >
+              <InterviewReadinessCard />
+            </motion.div>
           </div>
 
           {/* Center Card - Skills Analysis */}
@@ -175,7 +232,13 @@ export default function Hero({ children }: HeroProps) {
               transform: "translateX(-50%)",
             }}
           >
-            <SkillsAnalysisCard />
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.6, type: "spring" }}
+            >
+              <SkillsAnalysisCard />
+            </motion.div>
           </div>
 
           {/* Right Card - Resume Score */}
@@ -185,7 +248,13 @@ export default function Hero({ children }: HeroProps) {
               transform: "translateX(-50%) translateX(150px) rotate(20deg)",
             }}
           >
-            <ResumeScoreCard />
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.8, type: "spring" }}
+            >
+              <ResumeScoreCard />
+            </motion.div>
           </div>
         </div>
       </div>
@@ -200,7 +269,13 @@ export default function Hero({ children }: HeroProps) {
               transform: "translateX(-50%) translateX(-340px) rotate(-30deg)",
             }}
           >
-            <EmptyCard />
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring" }}
+            >
+              <EmptyCard />
+            </motion.div>
           </div>
 
           {/* Index 1: Interview Readiness (Left) */}
@@ -210,7 +285,13 @@ export default function Hero({ children }: HeroProps) {
               transform: "translateX(-50%) translateX(-210px) rotate(-15deg)",
             }}
           >
-            <InterviewReadinessCard />
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.4, type: "spring" }}
+            >
+              <InterviewReadinessCard />
+            </motion.div>
           </div>
 
           {/* Index 2: Skills Analysis (Center Left) */}
@@ -220,7 +301,13 @@ export default function Hero({ children }: HeroProps) {
               transform: "translateX(-50%) translateX(-75px) rotate(-5deg)",
             }}
           >
-            <SkillsAnalysisCard />
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.6, type: "spring" }}
+            >
+              <SkillsAnalysisCard />
+            </motion.div>
           </div>
 
           {/* Index 3: Resume Score (Center Right) */}
@@ -230,7 +317,13 @@ export default function Hero({ children }: HeroProps) {
               transform: "translateX(-50%) translateX(75px) rotate(5deg)",
             }}
           >
-            <ResumeScoreCard />
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.8, type: "spring" }}
+            >
+              <ResumeScoreCard />
+            </motion.div>
           </div>
 
           {/* Index 4: Recent Activity (Right) */}
@@ -240,7 +333,13 @@ export default function Hero({ children }: HeroProps) {
               transform: "translateX(-50%) translateX(210px) rotate(15deg)",
             }}
           >
-            <RecentActivityCard />
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 1.0, type: "spring" }}
+            >
+              <RecentActivityCard />
+            </motion.div>
           </div>
 
           {/* Index 5: Empty Card (Far Right) */}
@@ -250,29 +349,45 @@ export default function Hero({ children }: HeroProps) {
               transform: "translateX(-50%) translateX(340px) rotate(30deg)",
             }}
           >
-            <EmptyCard />
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 1.2, type: "spring" }}
+            >
+              <EmptyCard />
+            </motion.div>
           </div>
         </div>
       </div>
 
       {/* Floating Cursor Badges */}
-      <div className="absolute left-1 top-17 md:left-[4%] md:top-[55%] z-20 block animate-float">
+      <motion.div
+        className="absolute left-1 top-17 md:left-[4%] md:top-[55%] z-20 block animate-float-delayed"
+        initial={{ x: -200, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+      >
         <CursorBadge
           text="AI Interview"
           color="#BAEA6A"
           rotation={90}
           sharpEdge="top-right"
         />
-      </div>
+      </motion.div>
 
-      <div className="absolute right-[-30] top-75 md:right-[8%] md:top-[30%] z-20 block animate-float-delayed">
+      <motion.div
+        className="absolute right-[-30] top-75 md:right-[8%] md:top-[30%] z-20 block animate-float-delayed"
+        initial={{ x: 200, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+      >
         <CursorBadge
           text="ATS Score"
           color="#FEB271"
           rotation={0}
           sharpEdge="top-left"
         />
-      </div>
+      </motion.div>
 
       {/* Next Section Wrapper for Deep Cut */}
 
