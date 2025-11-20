@@ -1,7 +1,15 @@
 "use client";
 
-import { Flag } from "lucide-react";
+import { Flag, Menu } from "lucide-react";
 import React, { useState } from "react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 
 export default function Navbar() {
   const [hovered, setHovered] = useState<string | null>(null);
@@ -14,9 +22,9 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-transparent">
-      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-8 relative">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-4 relative">
         {/* Logo */}
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <a
             href="/"
             className="text-2xl font-semibold text-gray-900 bg-white rounded-full px-5 py-2  hover:text-gray-900 hover:bg-gray-50 transition-colors shadow-sm"
@@ -25,7 +33,7 @@ export default function Navbar() {
           </a>
         </div>
 
-        {/* Center Navigation Items */}
+        {/* Center Navigation Items - Desktop */}
         <div className="hidden md:flex items-center gap-6 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
           {navItems.map((item) => {
             const isHovered = hovered === item.label;
@@ -53,7 +61,7 @@ export default function Navbar() {
         </div>
 
         {/* Right Side - Language Selector & CTA */}
-        <div className="flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-3">
           <button
             className="bg-white rounded-full px-2 py-2 hover:bg-gray-50 transition-colors shadow-sm"
             aria-label="Select language"
@@ -65,6 +73,49 @@ export default function Navbar() {
           <button className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-full text-sm font-medium transition-colors">
             Login / Sign Up
           </button>
+        </div>
+
+        {/* Mobile Menu */}
+        <div className="md:hidden flex items-center gap-2">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="bg-white rounded-full shadow-sm"
+              >
+                <Menu className="h-6 w-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="pr-8">
+              <SheetHeader>
+                <SheetTitle>Menu</SheetTitle>
+              </SheetHeader>
+              <div className="flex flex-col gap-4 mt-8 px-2">
+                {navItems.map((item) => (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    className="text-lg font-medium text-gray-900 hover:text-gray-600"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+                <div className="h-px bg-gray-200 my-2" />
+                <button className="flex items-center gap-2 text-lg font-medium text-gray-900">
+                  <img
+                    src="https://img.icons8.com/?size=25&id=esGVrxg9VCJ1&format=png&color=000000"
+                    alt="Language"
+                    className="w-6 h-6"
+                  />
+                  Language
+                </button>
+                <button className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-full text-sm font-medium transition-colors w-full mt-4">
+                  Login / Sign Up
+                </button>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </nav>

@@ -108,7 +108,7 @@ export default function Hero({ children }: HeroProps) {
   return (
     <section
       ref={sectionRef}
-      className="h-screen w-full relative overflow-hidden flex flex-col pt-34 rounded-b-4xl"
+      className="min-h-screen w-full relative overflow-hidden flex flex-col pt-28 md:pt-34 rounded-b-4xl"
     >
       <div
         className="absolute inset-0 pointer-events-none"
@@ -144,20 +144,54 @@ export default function Hero({ children }: HeroProps) {
           >
             Try free for 14 days
           </a>
-
-          {/* <div className="flex items-center gap-3">
-            <span className="w-10 h-10 inline-flex items-center justify-center bg-white rounded-full shadow">
-              
-            </span>
-            <span className="w-10 h-10 inline-flex items-center justify-center bg-white rounded-full shadow">
-              G
-            </span>
-          </div> */}
         </div>
       </div>
 
-      {/* Fan-like Card Display */}
-      <div className="relative w-full max-w-[1400px] mx-auto grow perspective-1000 top-38">
+      {/* Mobile Card Display (Fan-like at bottom) */}
+      <div className="md:hidden relative w-full h-[300px] mt-8 overflow-hidden">
+        <div className="absolute bottom-0 left-0 h-full flex justify-center items-end pb-12 right-6">
+          <div
+            className="absolute left-30 bottom-11 z-30 scale-[0.6] origin-bottom"
+            style={{
+              transform: "translateX(-50%) translateX(-150px) rotate(-20deg)",
+            }}
+          >
+            <RecentActivityCard />
+          </div>
+          {/* Left Card - Interview Readiness */}
+          <div
+            className="absolute left-1/2 bottom-[84px] z-10 scale-[0.6] origin-bottom"
+            style={{
+              transform: "translateX(-50%) translateX(-150px) rotate(-20deg)",
+            }}
+          >
+            <InterviewReadinessCard />
+          </div>
+
+          {/* Center Card - Skills Analysis */}
+          <div
+            className="absolute left-1/2 bottom-[108px] z-20 scale-[0.70] mr-20 origin-bottom"
+            style={{
+              transform: "translateX(-50%)",
+            }}
+          >
+            <SkillsAnalysisCard />
+          </div>
+
+          {/* Right Card - Resume Score */}
+          <div
+            className="absolute left-1/2 bottom-11 z-10 scale-[0.6] origin-bottom"
+            style={{
+              transform: "translateX(-50%) translateX(150px) rotate(20deg)",
+            }}
+          >
+            <ResumeScoreCard />
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Fan-like Card Display */}
+      <div className="hidden md:block relative w-full max-w-[1400px] mx-auto grow perspective-1000 top-38">
         <div className="absolute bottom-0 left-0 right-0 h-[500px] flex justify-center items-end pb-20">
           {/* Index 0: Empty Card (Far Left) */}
           <div
@@ -222,7 +256,7 @@ export default function Hero({ children }: HeroProps) {
       </div>
 
       {/* Floating Cursor Badges */}
-      <div className="absolute left-[4%] top-[55%] z-20 hidden lg:block animate-float">
+      <div className="absolute left-1 top-17 md:left-[4%] md:top-[55%] z-20 block animate-float">
         <CursorBadge
           text="AI Interview"
           color="#BAEA6A"
@@ -231,7 +265,7 @@ export default function Hero({ children }: HeroProps) {
         />
       </div>
 
-      <div className="absolute right-[8%] top-[30%] z-20 hidden lg:block animate-float-delayed">
+      <div className="absolute right-[-30] top-75 md:right-[8%] md:top-[30%] z-20 block animate-float-delayed">
         <CursorBadge
           text="ATS Score"
           color="#FEB271"

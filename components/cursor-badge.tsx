@@ -39,7 +39,7 @@ export function CursorBadge({
   const config = styles[sharpEdge];
 
   return (
-    <div className="relative inline-flex group">
+    <div className="relative inline-flex group scale-75 md:scale-100 origin-center">
       <div
         className={`${config.padding} ${config.radius} text-black font-medium text-lg shadow-sm select-none transition-all`}
         style={{ backgroundColor: color }}
