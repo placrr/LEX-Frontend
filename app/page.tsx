@@ -3,7 +3,7 @@ import Hero from "@/components/hero";
 
 export default function Home() {
   return (
-    <main className="min-h-screen" style={{ backgroundColor: "#F9F7F3" }}>
+    <main className="min-h-screen" style={{ backgroundColor: "white" }}>
       {/* Dot pattern background (moved into hero section) */}
 
       <div className="relative z-10">

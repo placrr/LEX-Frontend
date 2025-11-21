@@ -109,7 +109,7 @@ export default function Hero({ children }: HeroProps) {
   return (
     <section
       ref={sectionRef}
-      className="min-h-screen w-full relative overflow-hidden flex flex-col pt-28 md:pt-34 rounded-b-4xl"
+      className="min-h-[85vh] md:min-h-screen w-full relative overflow-hidden flex flex-col pt-28 md:pt-34 border-t rounded-b-2xl bg-[#F9F7F3]"
     >
       <div
         className="absolute inset-0 pointer-events-none"
@@ -227,7 +227,7 @@ export default function Hero({ children }: HeroProps) {
 
           {/* Center Card - Skills Analysis */}
           <div
-            className="absolute left-1/2 bottom-[108px] z-20 scale-[0.70] mr-20 origin-bottom"
+            className="absolute left-40 bottom-[70px] z-20 scale-[0.71] mr-20 origin-bottom"
             style={{
               transform: "translateX(-50%)",
             }}
@@ -243,7 +243,7 @@ export default function Hero({ children }: HeroProps) {
 
           {/* Right Card - Resume Score */}
           <div
-            className="absolute left-1/2 bottom-11 z-10 scale-[0.6] origin-bottom"
+            className="absolute left-1/2 bottom-9 z-10 scale-[0.6] origin-bottom"
             style={{
               transform: "translateX(-50%) translateX(150px) rotate(20deg)",
             }}
