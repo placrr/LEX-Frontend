@@ -1,7 +1,18 @@
+"use client";
+
+import { useEffect } from "react";
 import Navbar from "@/components/navbar";
 import Hero from "@/components/hero";
+import KeyFeaturesSection from "@/components/key-features-section";
 
 export default function Home() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+  }, []);
+
   return (
     <main className="min-h-screen" style={{ backgroundColor: "white" }}>
       {/* Dot pattern background (moved into hero section) */}
@@ -13,6 +24,11 @@ export default function Home() {
 
         {/* Hero section */}
         <Hero>{/* put hero content here */}</Hero>
+
+        {/* Key Features Section */}
+        <div className="pt-12 md:pt-16">
+          <KeyFeaturesSection />
+        </div>
 
         {/* Dummy section */}
         <section className="h-screen bg-white w-full flex items-center justify-center">

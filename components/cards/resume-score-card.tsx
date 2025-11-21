@@ -1,8 +1,17 @@
+"use client";
+
 import { FileText, CheckCircle2 } from "lucide-react";
+import { useCounterAnimation } from "@/hooks/use-counter-animation";
+import { useInView } from "framer-motion";
+import { useRef } from "react";
 
 export function ResumeScoreCard() {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const score = useCounterAnimation({ end: 85, duration: 2000, enabled: isInView });
+
   return (
-    <div className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+    <div ref={ref} className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
       <div className="space-y-6">
         {/* Item 1 */}
         <div className="flex items-center gap-4">
@@ -36,7 +45,7 @@ export function ResumeScoreCard() {
           Overall ATS Score
         </p>
         <div className="flex items-baseline gap-2">
-          <span className="text-4xl font-bold text-gray-900">85</span>
+          <span className="text-4xl font-bold text-gray-900">{score}</span>
           <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-bold text-green-600">
             +12%
           </span>
