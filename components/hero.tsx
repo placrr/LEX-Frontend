@@ -109,7 +109,7 @@ export default function Hero({ children }: HeroProps) {
   return (
     <section
       ref={sectionRef}
-      className="min-h-[85vh] md:min-h-screen w-full relative overflow-hidden flex flex-col pt-28 md:pt-34 border-t rounded-b-2xl bg-[#F9F7F3]"
+      className="min-h-[85vh] md:min-h-screen w-full relative overflow-hidden flex flex-col pt-28 md:pt-34 border-t rounded-b-2 xl bg-[#F9F7F3]"
     >
       <div
         className="absolute inset-0 pointer-events-none"
@@ -148,9 +148,23 @@ export default function Hero({ children }: HeroProps) {
             </motion.span>
           ))}
           <br />
-          {Array.from("Companies Can’t Ignore").map((char, i) => (
+          <span className="crayon-highlight">
+            {Array.from("Companies").map((char, i) => (
+              <motion.span
+                key={`l2-comp-${i}`}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                className="inline-block"
+              >
+                {char}
+              </motion.span>
+            ))}
+          </span>
+          {Array.from(" Can’t Ignore").map((char, i) => (
             <motion.span
-              key={`l2-${i}`}
+              key={`l2-rest-${i}`}
               variants={{
                 hidden: { opacity: 0, y: 20 },
                 visible: { opacity: 1, y: 0 },
@@ -163,13 +177,13 @@ export default function Hero({ children }: HeroProps) {
         </motion.h1>
 
         <motion.p
-          className="mt-6 text-gray-400 max-w-2xl mx-auto text-base sm:text-sm"
+          className="mt-6 text-gray-500 max-w-2xl mx-auto text-base sm:text-sm "
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1, duration: 0.5 }}
         >
-          AI platform that helps students improve their resume, practice
-          interviews, and boost their shortlist chances
+          The platform built to make students feel prepared, confident, and
+          job-ready throughout their placement journey.
         </motion.p>
 
         <motion.div
@@ -264,7 +278,7 @@ export default function Hero({ children }: HeroProps) {
         <div className="absolute bottom-0 left-0 right-0 h-[500px] flex justify-center items-end pb-20">
           {/* Index 0: Empty Card (Far Left) */}
           <div
-            className="absolute left-140 bottom-4 z-0 opacity-80 scale-75 transition-all duration-500"
+            className="absolute left-140 bottom-4 z-0 opacity-80 scale-85 transition-all duration-500"
             style={{
               transform: "translateX(-50%) translateX(-340px) rotate(-30deg)",
             }}
@@ -280,7 +294,7 @@ export default function Hero({ children }: HeroProps) {
 
           {/* Index 1: Interview Readiness (Left) */}
           <div
-            className="absolute left-140 bottom-28 z-10 scale-75 transition-all duration-500 hover:z-40 hover:scale-90 hover:rotate-0"
+            className="absolute left-140 bottom-28 z-10 scale-85 transition-all duration-500 hover:z-40 hover:scale-90 hover:rotate-0"
             style={{
               transform: "translateX(-50%) translateX(-210px) rotate(-15deg)",
             }}
@@ -296,7 +310,7 @@ export default function Hero({ children }: HeroProps) {
 
           {/* Index 2: Skills Analysis (Center Left) */}
           <div
-            className="absolute left-1/2 bottom-36 z-20 scale-78 transition-all duration-500 hover:z-50 hover:scale-95"
+            className="absolute left-1/2 bottom-36 z-20 scale-96 transition-all duration-500 hover:z-50 hover:scale-95"
             style={{
               transform: "translateX(-50%) translateX(-75px) rotate(-5deg)",
             }}
@@ -312,7 +326,7 @@ export default function Hero({ children }: HeroProps) {
 
           {/* Index 3: Resume Score (Center Right) */}
           <div
-            className="absolute left-1/2 bottom-24 z-20 scale-75 transition-all duration-500 hover:z-50 hover:scale-95"
+            className="absolute left-1/2 bottom-24 z-20 scale-85 transition-all duration-500 hover:z-50 hover:scale-95"
             style={{
               transform: "translateX(-50%) translateX(75px) rotate(5deg)",
             }}
@@ -328,7 +342,7 @@ export default function Hero({ children }: HeroProps) {
 
           {/* Index 4: Recent Activity (Right) */}
           <div
-            className="absolute left-1/2 bottom-18 z-10 scale-75 transition-all duration-500 hover:z-40 hover:scale-90 hover:rotate-0"
+            className="absolute left-1/2 bottom-18 z-10 scale-85 transition-all duration-500 hover:z-40 hover:scale-90 hover:rotate-0"
             style={{
               transform: "translateX(-50%) translateX(210px) rotate(15deg)",
             }}
@@ -426,6 +440,41 @@ export default function Hero({ children }: HeroProps) {
           font-family: "DM Sans", sans-serif;
           font-weight: 500;
           letter-spacing: -0.03em;
+        }
+
+        .crayon-highlight {
+          position: relative;
+          display: inline-block;
+          margin-right: 0.1em;
+          z-index: 1;
+        }
+
+        .crayon-highlight::before {
+          content: "";
+          position: absolute;
+          top: -30px;
+          left: -10px;
+          right: -10px;
+          bottom: -30px;
+          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='60' viewBox='0 0 200 65' preserveAspectRatio='none'%3E%3Cfilter id='rough'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.02' numOctaves='3' result='noise'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='noise' scale='3'/%3E%3C/filter%3E%3Cpath d='M10,30 Q50,10 100,30 T190,30' stroke='%23FDE047' stroke-width='40' fill='none' stroke-linecap='round' stroke-linejoin='round' filter='url(%23rough)' opacity='0.9'/%3E%3C/svg%3E")
+            no-repeat center center;
+          background-size: 100% 100%;
+          z-index: -1;
+          transform: rotate(-1deg);
+          pointer-events: none;
+
+          /* Animation: start hidden and rub in */
+          clip-path: inset(0 100% 0 0);
+          animation: rub-in 0.8s ease-out forwards 2s;
+        }
+
+        @keyframes rub-in {
+          0% {
+            clip-path: inset(0 100% 0 0);
+          }
+          100% {
+            clip-path: inset(0 0 0 0);
+          }
         }
 
         .pill {
