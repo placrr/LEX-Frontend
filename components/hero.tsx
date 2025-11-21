@@ -109,7 +109,7 @@ export default function Hero({ children }: HeroProps) {
   return (
     <section
       ref={sectionRef}
-      className="min-h-[85vh] md:min-h-screen w-full relative overflow-hidden flex flex-col pt-28 md:pt-34 border-t rounded-b-2 xl bg-[#F9F7F3]"
+      className="min-h-[85vh] md:min-h-screen w-full relative overflow-hidden flex flex-col pt-28 md:pt-34 border-t rounded-b-2xl bg-[#F9F7F3]"
     >
       <div
         className="absolute inset-0 pointer-events-none"
@@ -402,8 +402,6 @@ export default function Hero({ children }: HeroProps) {
           sharpEdge="top-left"
         />
       </motion.div>
-
-      {/* Next Section Wrapper for Deep Cut */}
 
       <style jsx global>{`
         @keyframes float {
