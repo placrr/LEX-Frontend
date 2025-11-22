@@ -8,8 +8,8 @@ import KeyFeaturesSection from "@/components/key-features-section";
 export default function Home() {
   useEffect(() => {
     window.scrollTo(0, 0);
-    if ('scrollRestoration' in window.history) {
-      window.history.scrollRestoration = 'manual';
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
     }
   }, []);
 
@@ -31,9 +31,9 @@ export default function Home() {
         </div>
 
         {/* Dummy section */}
-        <section className="h-screen bg-white w-full flex items-center justify-center">
+        {/* <section className="h-screen bg-white w-full flex items-center justify-center">
           <h2 className="text-3xl font-bold text-gray-200">Content Section</h2>
-        </section>
+        </section> */}
       </div>
     </main>
   );
