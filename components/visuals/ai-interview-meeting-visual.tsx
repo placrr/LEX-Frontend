@@ -28,7 +28,7 @@ export default function AIInterviewMeetingVisual({
     visible: {
       opacity: 1,
       scale: 1,
-      transition: { duration: 0.8, ease: "easeOut" },
+      transition: { duration: 0.8, ease: "easeOut" as any },
     },
   };
 
@@ -39,21 +39,23 @@ export default function AIInterviewMeetingVisual({
     transition: {
       duration: 1.4, // Fast, speech-like tempo
       repeat: Infinity,
-      ease: "easeInOut",
+      ease: "easeInOut" as any,
     },
   };
 
   // Colors Palette
   const colors = {
-    bg: "#F0F9FF", // Solid pale sky blue background
-    orange: { bright: "#F97316", deep: "#EA580C" },
-    skyBlue: {
-      pale: "#E0F2FE",
-      bright: "#38BDF8",
-      deep: "#0284C7",
-      darkText: "#0C4A6E",
+    bg: "#FFFFFF",
+    border: "#000000",
+    text: {
+      primary: "#000000",
+      secondary: "#666666",
     },
-    lightGreen: { bright: "#86EFAC", deep: "#22C55E" },
+    surface: {
+      light: "#FAFAFA",
+      stroke: "#E5E5E5",
+    },
+    accent: "#000000",
   };
 
   return (
@@ -65,7 +67,7 @@ export default function AIInterviewMeetingVisual({
         viewBox="0 0 600 300"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="w-full h-full drop-shadow-xl"
+        className="w-full h-full drop-shadow-2xl"
         preserveAspectRatio="xMidYMid meet"
         initial="hidden"
         animate={isInView ? "visible" : "hidden"}
@@ -73,30 +75,24 @@ export default function AIInterviewMeetingVisual({
       >
         <g transform="translate(100, 0)">
           <defs>
-            {/* NOTE: Dot pattern removed. */}
-
-            {/* Vibrant Speaking Gradient for Waves */}
+            {/* Monochrome Gradients */}
             <linearGradient id="waveGradient" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor={colors.orange.bright} />
-              <stop offset="100%" stopColor={colors.skyBlue.bright} />
+              <stop offset="0%" stopColor="#000000" />
+              <stop offset="100%" stopColor="#404040" />
             </linearGradient>
 
-            {/* User Avatar Gradient */}
-            <linearGradient id="userGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#BBF7D0" />
-              <stop offset="100%" stopColor={colors.lightGreen.bright} />
+            <linearGradient id="aimv_userGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#E0F2FE" />
+              <stop offset="100%" stopColor="#7DD3FC" />
             </linearGradient>
 
-            {/* Crystal Edge Gradient */}
-            <linearGradient id="crystalEdge" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.9" />
-              <stop offset="50%" stopColor="#FFFFFF" stopOpacity="0.1" />
-              <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.6" />
+            <linearGradient id="aimv_glassGradient" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.8" />
+              <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.4" />
             </linearGradient>
 
-            {/* Sharper Shadow for crystal elements */}
             <filter
-              id="crystalShadow"
+              id="aimv_softShadow"
               x="-20%"
               y="-20%"
               width="140%"
@@ -104,31 +100,28 @@ export default function AIInterviewMeetingVisual({
             >
               <feDropShadow
                 dx="0"
-                dy="2"
-                stdDeviation="3"
-                floodColor={colors.skyBlue.darkText}
-                floodOpacity="0.15"
+                dy="4"
+                stdDeviation="6"
+                floodColor="#000000"
+                floodOpacity="0.1"
               />
             </filter>
           </defs>
 
-          {/* ==========================
-            Main Meeting Window Background (Solid Color, No Dots)
-           ========================== */}
+          {/* Main Meeting Window */}
           <rect
             x="20"
             y="20"
             width="360"
             height="260"
             rx="24"
-            fill={colors.bg} // Using solid background color
-            stroke={colors.skyBlue.pale}
-            strokeWidth="1"
+            fill={colors.bg}
+            // stroke="white"
+            strokeWidth="2"
+            filter="url(#aimv_softShadow)"
           />
 
-          {/* ==========================
-            AI Participant (Left) - NEW TALKING ANIMATION
-           ========================== */}
+          {/* AI Participant (Left) */}
           <motion.g
             initial={{ opacity: 0, scale: 0.9 }}
             animate={
@@ -136,73 +129,59 @@ export default function AIInterviewMeetingVisual({
             }
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            {/* Crystal Video Container */}
+            {/* Video Container */}
             <rect
               x="35"
               y="35"
               width="160"
               height="110"
               rx="16"
-              fill="#FFFFFF"
-              fillOpacity="0.3"
-              stroke="url(#crystalEdge)"
-              strokeWidth="1.5"
-              filter="url(#crystalShadow)"
+              fill={colors.surface.light}
+              stroke={colors.surface.stroke}
+              strokeWidth="1"
             />
 
-            {/* NEW AI TALKING ANIMATION (Pulsing Waveforms) */}
+            {/* AI Talking Animation */}
             <g transform="translate(115, 90)">
-              {/* Outer Wave (Delayed) */}
               <motion.circle
                 cx="0"
                 cy="0"
                 r="28"
-                fill="url(#waveGradient)"
+                fill="#90CAF9"
+                opacity="0.1"
                 animate={talkingWaveform}
                 transition={{ ...talkingWaveform.transition, delay: 0.2 }}
+                style={{ transformBox: "fill-box", transformOrigin: "center" }}
               />
-              {/* Inner Wave */}
               <motion.circle
                 cx="0"
                 cy="0"
                 r="20"
-                fill="url(#waveGradient)"
+                fill="#90CAF9"
+                opacity="0.2"
                 animate={talkingWaveform}
+                style={{ transformBox: "fill-box", transformOrigin: "center" }}
               />
-
-              {/* Core Orb (Steady) */}
-              <circle cx="0" cy="0" r="12" fill="#FFFFFF" />
-              <circle cx="0" cy="0" r="7" fill="url(#waveGradient)" />
+              <circle cx="0" cy="0" r="12" fill="#90CAF9" />
+              <circle cx="0" cy="0" r="4" fill="#90CAF9" />
             </g>
 
-            {/* Crystal Label Pill */}
-            <rect
-              x="45"
-              y="125"
-              width="40"
-              height="14"
-              rx="7"
-              fill="#FFFFFF"
-              fillOpacity="0.5"
-              stroke="url(#crystalEdge)"
-              strokeWidth="0.5"
-            />
+            {/* Label */}
+            {/* <rect x="45" y="125" width="75" height="16" rx="8" fill="#000000" /> */}
             <text
-              x="65"
-              y="135"
+              x="83"
+              y="136"
               textAnchor="middle"
-              fill={colors.skyBlue.deep}
-              fontSize="8"
-              fontWeight="700"
-              letterSpacing="0.5"
+              fill="black"
+              fontSize="9"
+              fontWeight="900"
+              letterSpacing="0.5px"
             >
-              AI SPEAKING
+              INTERVIEWER
             </text>
           </motion.g>
 
-          {/* ==========================
-            User Participant (Right)
-           ========================== */}
+          {/* User Participant (Right) */}
           <motion.g
             initial={{ opacity: 0, scale: 0.9 }}
             animate={
@@ -210,65 +189,54 @@ export default function AIInterviewMeetingVisual({
             }
             transition={{ duration: 0.6, delay: 0.3 }}
           >
-            {/* Crystal Video Container */}
             <rect
               x="205"
               y="35"
               width="160"
               height="110"
               rx="16"
-              fill="#FFFFFF"
-              fillOpacity="0.3"
-              stroke="url(#crystalEdge)"
-              strokeWidth="1.5"
-              filter="url(#crystalShadow)"
+              fill={colors.surface.light}
+              stroke={colors.surface.stroke}
+              strokeWidth="1"
             />
 
-            {/* Avatar Shape */}
             <g transform="translate(285, 90)">
-              <circle cx="0" cy="-15" r="16" fill="url(#userGradient)" />
+              <circle cx="0" cy="-15" r="16" fill="url(#aimv_userGradient)" />
               <path
                 d="M -22 15 Q 0 25 22 15 V 25 H -22 Z"
-                fill="url(#userGradient)"
+                fill="url(#aimv_userGradient)"
                 opacity="0.8"
               />
-              <path d="M -22 15 Q 0 -5 22 15" fill="url(#userGradient)" />
+              <path d="M -22 15 Q 0 -5 22 15" fill="url(#aimv_userGradient)" />
             </g>
 
-            {/* Crystal Label Pill */}
-            <rect
+            {/* <rect
               x="325"
               y="125"
               width="30"
-              height="14"
-              rx="7"
-              fill="#FFFFFF"
-              fillOpacity="0.5"
-              stroke="url(#crystalEdge)"
-              strokeWidth="0.5"
-            />
+              height="16"
+              rx="8"
+              fill="#000000"
+            /> */}
             <text
               x="340"
-              y="135"
+              y="136"
               textAnchor="middle"
-              fill={colors.skyBlue.deep}
-              fontSize="8"
-              fontWeight="700"
-              letterSpacing="0.5"
+              fill="black"
+              fontSize="9"
+              fontWeight="900"
+              letterSpacing="0.5px"
             >
               YOU
             </text>
           </motion.g>
 
-          {/* ==========================
-            Crystal Overlay: Question
-           ========================== */}
+          {/* Question Overlay */}
           <motion.g
             initial={{ y: 10, opacity: 0 }}
             animate={isInView ? { y: 0, opacity: 1 } : { y: 10, opacity: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
           >
-            {/* Crystal Background */}
             <rect
               x="35"
               y="160"
@@ -276,19 +244,18 @@ export default function AIInterviewMeetingVisual({
               height="65"
               rx="16"
               fill="#FFFFFF"
-              fillOpacity="0.4"
-              stroke="url(#crystalEdge)"
-              strokeWidth="2"
-              filter="url(#crystalShadow)"
+              stroke={colors.surface.stroke}
+              strokeWidth="1"
+              filter="url(#aimv_softShadow)"
             />
 
             <text
               x="200"
               y="182"
               textAnchor="middle"
-              fill={colors.skyBlue.darkText}
+              fill={colors.text.primary}
               fontSize="12"
-              fontWeight="700"
+              fontWeight="600"
             >
               Tell me about your experience
             </text>
@@ -296,14 +263,14 @@ export default function AIInterviewMeetingVisual({
               x="200"
               y="198"
               textAnchor="middle"
-              fill={colors.skyBlue.deep}
-              fontSize="10"
+              fill={colors.text.secondary}
+              fontSize="11"
               fontWeight="500"
             >
               with React and TypeScript?
             </text>
 
-            {/* Thinking Animation - Orange dots */}
+            {/* Thinking Dots */}
             <g transform="translate(188, 210)">
               {[0, 1, 2].map((i) => (
                 <motion.circle
@@ -311,7 +278,7 @@ export default function AIInterviewMeetingVisual({
                   cx={i * 12}
                   cy="0"
                   r="2.5"
-                  fill={colors.orange.bright}
+                  fill="#000000"
                   animate={{ opacity: [0.3, 1, 0.3], scale: [1, 1.2, 1] }}
                   transition={{
                     duration: 1.2,
@@ -323,57 +290,43 @@ export default function AIInterviewMeetingVisual({
             </g>
           </motion.g>
 
-          {/* ==========================
-            Floating Crystal Controls Bar
-           ========================== */}
+          {/* Controls Bar */}
           <motion.g
             initial={{ y: 20, opacity: 0 }}
             animate={isInView ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
             transition={{ duration: 0.6, delay: 0.7 }}
           >
-            {/* Crystal Bar Background */}
             <rect
               x="80"
               y="245"
               width="240"
               height="40"
               rx="20"
-              fill="#FFFFFF"
-              fillOpacity="0.4"
-              stroke="url(#crystalEdge)"
-              strokeWidth="1.5"
-              filter="url(#crystalShadow)"
+              fill="#000000"
+              filter="url(#aimv_softShadow)"
             />
 
-            {/* Icons Group */}
             <g transform="translate(120, 265)">
-              {/* Mic (Active) */}
-              <circle cx="0" cy="0" r="12" fill={colors.skyBlue.pale} />
-              <rect
-                x="-3"
-                y="-4"
-                width="6"
-                height="8"
-                rx="3"
-                fill={colors.skyBlue.deep}
-              />
+              {/* Mic */}
+              <circle cx="0" cy="0" r="12" fill="#333333" />
+              <rect x="-3" y="-4" width="6" height="8" rx="3" fill="#FFFFFF" />
 
-              {/* Camera (Active) */}
+              {/* Camera */}
               <g transform="translate(40, 0)">
-                <circle cx="0" cy="0" r="12" fill={colors.skyBlue.pale} />
+                <circle cx="0" cy="0" r="12" fill="#333333" />
                 <rect
                   x="-5"
                   y="-3"
                   width="10"
                   height="6"
                   rx="1"
-                  fill={colors.skyBlue.deep}
+                  fill="#FFFFFF"
                 />
               </g>
 
-              {/* End Call - Deep Orange */}
+              {/* End Call */}
               <g transform="translate(80, 0)">
-                <circle cx="0" cy="0" r="12" fill={colors.orange.deep} />
+                <circle cx="0" cy="0" r="12" fill="#DC2626" />
                 <rect
                   x="-4"
                   y="-1.5"
@@ -391,12 +344,12 @@ export default function AIInterviewMeetingVisual({
                   cy="0"
                   r="12"
                   fill="transparent"
-                  stroke={colors.skyBlue.pale}
+                  stroke="#333333"
                   strokeWidth="1"
                 />
-                <circle cx="-4" cy="0" r="1" fill={colors.skyBlue.bright} />
-                <circle cx="0" cy="0" r="1" fill={colors.skyBlue.bright} />
-                <circle cx="4" cy="0" r="1" fill={colors.skyBlue.bright} />
+                <circle cx="-4" cy="0" r="1" fill="#FFFFFF" />
+                <circle cx="0" cy="0" r="1" fill="#FFFFFF" />
+                <circle cx="4" cy="0" r="1" fill="#FFFFFF" />
               </g>
             </g>
           </motion.g>
