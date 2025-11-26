@@ -109,7 +109,7 @@ export default function Hero({ children }: HeroProps) {
   return (
     <section
       ref={sectionRef}
-      className="min-h-[85vh] md:min-h-screen w-full relative overflow-hidden flex flex-col pt-28 md:pt-34 border-t rounded-b-2xl bg-[#F9F7F3]"
+      className="min-h-[85dvh] md:min-h-screen w-full relative overflow-hidden flex flex-col pt-28 md:pt-34 border-t rounded-b-2xl bg-[#F9F7F3]"
     >
       <div
         className="absolute inset-0 pointer-events-none"
@@ -277,12 +277,7 @@ export default function Hero({ children }: HeroProps) {
       <div className="hidden md:block relative w-full max-w-[1400px] mx-auto grow perspective-1000 top-38">
         <div className="absolute bottom-0 left-0 right-0 h-[500px] flex justify-center items-end pb-20">
           {/* Index 0: Empty Card (Far Left) */}
-          <div
-            className="absolute left-140 bottom-4 z-0 opacity-80 scale-85 transition-all duration-500"
-            style={{
-              transform: "translateX(-50%) translateX(-340px) rotate(-30deg)",
-            }}
-          >
+          <div className="absolute left-1/2 bottom-4 z-0 opacity-80 scale-75 lg:scale-85 transition-all duration-500 -rotate-[30deg] translate-x-[calc(-50%_-_220px)] lg:translate-x-[calc(-50%_-_340px)]">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -293,12 +288,7 @@ export default function Hero({ children }: HeroProps) {
           </div>
 
           {/* Index 1: Interview Readiness (Left) */}
-          <div
-            className="absolute left-140 bottom-28 z-10 scale-85 transition-all duration-500 hover:z-40 hover:scale-90 hover:rotate-0"
-            style={{
-              transform: "translateX(-50%) translateX(-210px) rotate(-15deg)",
-            }}
-          >
+          <div className="absolute left-1/2 bottom-28 z-10 scale-75 lg:scale-85 transition-all duration-500 hover:z-40 hover:scale-90 hover:rotate-0 -rotate-[15deg] translate-x-[calc(-50%_-_140px)] lg:translate-x-[calc(-50%_-_210px)]">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -309,12 +299,7 @@ export default function Hero({ children }: HeroProps) {
           </div>
 
           {/* Index 2: Skills Analysis (Center Left) */}
-          <div
-            className="absolute left-1/2 bottom-36 z-20 scale-96 transition-all duration-500 hover:z-50 hover:scale-95"
-            style={{
-              transform: "translateX(-50%) translateX(-75px) rotate(-5deg)",
-            }}
-          >
+          <div className="absolute left-1/2 bottom-36 z-20 scale-90 lg:scale-96 transition-all duration-500 hover:z-50 hover:scale-95 -rotate-[5deg] translate-x-[calc(-50%_-_50px)] lg:translate-x-[calc(-50%_-_75px)]">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -325,12 +310,7 @@ export default function Hero({ children }: HeroProps) {
           </div>
 
           {/* Index 3: Resume Score (Center Right) */}
-          <div
-            className="absolute left-1/2 bottom-24 z-20 scale-85 transition-all duration-500 hover:z-50 hover:scale-95"
-            style={{
-              transform: "translateX(-50%) translateX(75px) rotate(5deg)",
-            }}
-          >
+          <div className="absolute left-1/2 bottom-24 z-20 scale-75 lg:scale-85 transition-all duration-500 hover:z-50 hover:scale-95 rotate-[5deg] translate-x-[calc(-50%_+_50px)] lg:translate-x-[calc(-50%_+_75px)]">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -341,12 +321,7 @@ export default function Hero({ children }: HeroProps) {
           </div>
 
           {/* Index 4: Recent Activity (Right) */}
-          <div
-            className="absolute left-1/2 bottom-18 z-10 scale-85 transition-all duration-500 hover:z-40 hover:scale-90 hover:rotate-0"
-            style={{
-              transform: "translateX(-50%) translateX(210px) rotate(15deg)",
-            }}
-          >
+          <div className="absolute left-1/2 bottom-18 z-10 scale-75 lg:scale-85 transition-all duration-500 hover:z-40 hover:scale-90 hover:rotate-0 rotate-[15deg] translate-x-[calc(-50%_+_140px)] lg:translate-x-[calc(-50%_+_210px)]">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -357,12 +332,7 @@ export default function Hero({ children }: HeroProps) {
           </div>
 
           {/* Index 5: Empty Card (Far Right) */}
-          <div
-            className="absolute left-1/2 bottom-4 z-0 opacity-80 scale-75 transition-all duration-500"
-            style={{
-              transform: "translateX(-50%) translateX(340px) rotate(30deg)",
-            }}
-          >
+          <div className="absolute left-1/2 bottom-4 z-0 opacity-80 scale-65 lg:scale-75 transition-all duration-500 rotate-[30deg] translate-x-[calc(-50%_+_220px)] lg:translate-x-[calc(-50%_+_340px)]">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}

@@ -14,6 +14,7 @@ interface FeatureTabButtonProps {
   ariaControls: string;
   tabIndex?: number;
   color?: string;
+  className?: string;
 }
 
 export const FeatureTabButton = forwardRef<
@@ -30,6 +31,7 @@ export const FeatureTabButton = forwardRef<
     ariaControls,
     tabIndex = 0,
     color = "#F86510",
+    className = "",
   },
   ref
 ) {
@@ -47,6 +49,7 @@ export const FeatureTabButton = forwardRef<
           relative flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg
           font-medium text-xs sm:text-sm transition-all duration-300 whitespace-nowrap
           outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+          ${className}
         `}
       style={{
         backgroundColor: isActive ? color : "#FFFFFF",
@@ -72,17 +75,6 @@ export const FeatureTabButton = forwardRef<
         />
       </motion.div>
       <span className="font-['DM_Sans']">{label}</span>
-
-      {/* Active indicator glow */}
-      {isActive && (
-        <motion.div
-          className="absolute inset-0 rounded-lg opacity-50 blur-xl"
-          style={{ backgroundColor: color, zIndex: -1 }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0.3, 0.5, 0.3] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        />
-      )}
     </motion.button>
   );
 });
