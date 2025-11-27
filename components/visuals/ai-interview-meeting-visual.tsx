@@ -199,13 +199,13 @@ export default function AIInterviewMeetingVisual({
             />
 
             <g transform="translate(285, 90)">
-              <circle cx="0" cy="-15" r="16" fill="url(#userGradient)" />
+              <circle cx="0" cy="-15" r="16" fill="#90CAF9" />
               <path
                 d="M -22 15 Q 0 25 22 15 V 25 H -22 Z"
-                fill="url(#userGradient)"
+                fill="#90CAF9"
                 opacity="0.8"
               />
-              <path d="M -22 15 Q 0 -5 22 15" fill="url(#userGradient)" />
+              <path d="M -22 15 Q 0 -5 22 15" fill="#90CAF9" />
             </g>
 
             {/* <rect
