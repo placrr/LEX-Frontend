@@ -370,20 +370,20 @@ export default function KeyFeaturesSection({
               {/* Mobile Content Layout */}
               <div className="md:hidden flex flex-col gap-4 mt-4 px-2">
                 {/* Row 1: Visual and Text */}
-                <div className="flex flex-row items-center gap-3 h-40">
+                <div className="flex flex-col sm:flex-row items-center gap-3 min-h-[280px] sm:min-h-[200px]">
                   {/* 1. Visual */}
-                  <div className="w-[45%] h-full relative flex items-center justify-center">
-                    <div className="scale-[1.3] origin-center w-full flex items-center justify-center">
+                  <div className="w-full sm:w-[50%] h-40 sm:h-full relative flex items-center justify-center overflow-visible">
+                    <div className="w-full h-full flex items-center justify-center">
                       {getVisualComponent(activeTab)}
                     </div>
                   </div>
 
                   {/* 2. Text */}
-                  <div className="w-[55%] h-full flex flex-col justify-center overflow-y-auto px-1">
-                    <h3 className="text-sm font-bold text-black mb-2 leading-tight font-['DM_Sans']">
+                  <div className="w-full sm:w-[50%] flex flex-col justify-center px-1">
+                    <h3 className="text-sm font-bold text-black mb-2 leading-tight font-['DM_Sans'] text-center sm:text-left">
                       {activeFeature.title}
                     </h3>
-                    <p className="text-[10px] text-gray-500 leading-relaxed font-['DM_Sans'] line-clamp-6 wrap-break-word">
+                    <p className="text-xs text-gray-500 leading-relaxed font-['DM_Sans'] line-clamp-4 sm:line-clamp-6 text-center sm:text-left">
                       {activeFeature.description}
                     </p>
                   </div>

@@ -37,16 +37,16 @@ export default function ATSAnalysisVisual({
   return (
     <div
       ref={ref}
-      className={`w-full max-w-3xl mx-auto aspect-video flex items-center justify-center  rounded-xl p-4 ${className}`}
+      className={`w-full max-w-3xl mx-auto flex items-center justify-center min-h-[120px] sm:min-h-[150px] md:min-h-[200px] rounded-xl p-2 sm:p-4 ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <motion.svg
         key={animationKey}
-        viewBox="0 0 600 300" // Widened viewbox for better spacing
+        viewBox="0 0 600 300"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="w-full h-full drop-shadow-sm"
+        className="w-full h-full max-h-[160px] sm:max-h-[200px] md:max-h-none drop-shadow-sm"
         preserveAspectRatio="xMidYMid meet"
       >
         {/* =============================================
