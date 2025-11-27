@@ -97,14 +97,14 @@ export default function ResumeOptimizationVisual({
   return (
     <div
       ref={ref}
-      className={`w-full max-w-3xl mx-auto aspect-video flex items-center justify-center ${className}`}
+      className={`w-full max-w-3xl mx-auto flex items-center justify-center min-h-[120px] sm:min-h-[150px] md:min-h-[200px] ${className}`}
     >
       <svg
         key={animationKey}
         viewBox="0 0 600 300"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className="w-full h-full"
+        className="w-full h-full max-h-[160px] sm:max-h-[200px] md:max-h-none"
         preserveAspectRatio="xMidYMid meet"
       >
         <g transform="translate(100, 0)">
