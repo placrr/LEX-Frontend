@@ -81,18 +81,18 @@ export default function AIInterviewMeetingVisual({
               <stop offset="100%" stopColor="#404040" />
             </linearGradient>
 
-            <linearGradient id="aimv_userGradient" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="userGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#E0F2FE" />
               <stop offset="100%" stopColor="#7DD3FC" />
             </linearGradient>
 
-            <linearGradient id="aimv_glassGradient" x1="0" y1="0" x2="1" y2="1">
+            <linearGradient id="glassGradient" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.8" />
               <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.4" />
             </linearGradient>
 
             <filter
-              id="aimv_softShadow"
+              id="softShadow"
               x="-20%"
               y="-20%"
               width="140%"
@@ -116,9 +116,9 @@ export default function AIInterviewMeetingVisual({
             height="260"
             rx="24"
             fill={colors.bg}
-            // stroke="white"
+            stroke="white"
             strokeWidth="2"
-            filter="url(#aimv_softShadow)"
+            // filter="url(#softShadow)"
           />
 
           {/* AI Participant (Left) */}
@@ -151,7 +151,6 @@ export default function AIInterviewMeetingVisual({
                 opacity="0.1"
                 animate={talkingWaveform}
                 transition={{ ...talkingWaveform.transition, delay: 0.2 }}
-                style={{ transformBox: "fill-box", transformOrigin: "center" }}
               />
               <motion.circle
                 cx="0"
@@ -160,7 +159,6 @@ export default function AIInterviewMeetingVisual({
                 fill="#90CAF9"
                 opacity="0.2"
                 animate={talkingWaveform}
-                style={{ transformBox: "fill-box", transformOrigin: "center" }}
               />
               <circle cx="0" cy="0" r="12" fill="#90CAF9" />
               <circle cx="0" cy="0" r="4" fill="#90CAF9" />
@@ -174,8 +172,8 @@ export default function AIInterviewMeetingVisual({
               textAnchor="middle"
               fill="black"
               fontSize="9"
-              fontWeight="900"
-              letterSpacing="0.5px"
+              fontWeight="1000"
+              letterSpacing="0.5"
             >
               INTERVIEWER
             </text>
@@ -201,13 +199,13 @@ export default function AIInterviewMeetingVisual({
             />
 
             <g transform="translate(285, 90)">
-              <circle cx="0" cy="-15" r="16" fill="url(#aimv_userGradient)" />
+              <circle cx="0" cy="-15" r="16" fill="url(#userGradient)" />
               <path
                 d="M -22 15 Q 0 25 22 15 V 25 H -22 Z"
-                fill="url(#aimv_userGradient)"
+                fill="url(#userGradient)"
                 opacity="0.8"
               />
-              <path d="M -22 15 Q 0 -5 22 15" fill="url(#aimv_userGradient)" />
+              <path d="M -22 15 Q 0 -5 22 15" fill="url(#userGradient)" />
             </g>
 
             {/* <rect
@@ -224,8 +222,8 @@ export default function AIInterviewMeetingVisual({
               textAnchor="middle"
               fill="black"
               fontSize="9"
-              fontWeight="900"
-              letterSpacing="0.5px"
+              fontWeight="1000"
+              letterSpacing="0.5"
             >
               YOU
             </text>
@@ -246,7 +244,7 @@ export default function AIInterviewMeetingVisual({
               fill="#FFFFFF"
               stroke={colors.surface.stroke}
               strokeWidth="1"
-              filter="url(#aimv_softShadow)"
+              filter="url(#softShadow)"
             />
 
             <text
@@ -303,7 +301,7 @@ export default function AIInterviewMeetingVisual({
               height="40"
               rx="20"
               fill="#000000"
-              filter="url(#aimv_softShadow)"
+              // filter="url(#softShadow)"
             />
 
             <g transform="translate(120, 265)">
