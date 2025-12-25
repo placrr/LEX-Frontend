@@ -2,31 +2,27 @@
 
 import Navbar from "@/components/navbar";
 import Hero from "@/components/hero";
-import KeyFeaturesSection from "@/components/key-features-section";
+import Features from "@/components/Features";
+import BuildForEveryoneSection from "@/components/BuildForEveryoneSection";
+import PricingSection from "@/components/Pricing Section";
+import CTABanner from "@/components/CTABanner";
+import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
-    <main className="min-h-screen" style={{ backgroundColor: "white" }}>
-      {/* Dot pattern background (moved into hero section) */}
+    <main className="relative min-h-screen bg-white overflow-x-hidden">
+      <Navbar />
 
-      <div className="relative z-10">
-        <div className="absolute top-0 left-0 right-0 z-50">
-          <Navbar />
-        </div>
+      {/* HERO */}
+      <Hero />
 
-        {/* Hero section */}
-        <Hero>{/* put hero content here */}</Hero>
+      {/* FEATURES */}
+      <Features />
+      <BuildForEveryoneSection />
+      <PricingSection />
+      <CTABanner />
 
-        {/* Key Features Section */}
-        <div className="pt-12 md:pt-16">
-          <KeyFeaturesSection />
-        </div>
-
-        {/* Dummy section */}
-        {/* <section className="h-screen bg-white w-full flex items-center justify-center">
-          <h2 className="text-3xl font-bold text-gray-200">Content Section</h2>
-        </section> */}
-      </div>
+      <Footer />
     </main>
   );
 }
