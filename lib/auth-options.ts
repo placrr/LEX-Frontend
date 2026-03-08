@@ -1,0 +1,36 @@
+import { NextAuthOptions } from "next-auth"
+import GoogleProvider from "next-auth/providers/google"
+
+export const authOptions: NextAuthOptions = {
+providers: [
+  GoogleProvider({
+    clientId: process.env.GOOGLE_CLIENT_ID!,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    authorization: {
+      params: {
+        prompt: "select_account",   // 👈 force account chooser
+        hd: "kiit.ac.in"
+      }
+    }
+  })
+],
+
+  session: {
+    strategy: "jwt"
+  },
+
+  secret: process.env.NEXTAUTH_SECRET!, // IMPORTANT
+
+  callbacks: {
+    async signIn({ profile }) {
+      if (!profile?.email?.endsWith("@kiit.ac.in")) {
+        return false
+      }
+      return true
+    },
+
+async redirect() {
+  return "/after-oauth"
+}
+  }
+}
