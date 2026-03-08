@@ -1,6 +1,5 @@
 "use client";
 
-import Navbar from "@/components/navbar";
 import Hero from "@/components/hero";
 import KeyFeaturesSection from "@/components/key-features-section";
 
@@ -11,7 +10,6 @@ export default function Home() {
 
       <div className="relative z-10">
         <div className="absolute top-0 left-0 right-0 z-50">
-          <Navbar />
         </div>
 
         {/* Hero section */}
