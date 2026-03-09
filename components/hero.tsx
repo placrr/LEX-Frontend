@@ -1,491 +1,251 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { InterviewReadinessCard } from "./cards/interview-readiness-card";
-import { ResumeScoreCard } from "./cards/resume-score-card";
-import { SkillsAnalysisCard } from "./cards/skills-analysis-card";
-import { RecentActivityCard } from "./cards/recent-activity-card";
-import { EmptyCard } from "./cards/empty-card";
-import { CursorBadge } from "./cursor-badge";
+import Image from "next/image";
+import { CheckCircle } from "lucide-react";
+import { useRef, useState } from "react";
 
-type HeroProps = {
-  children?: React.ReactNode;
-};
-
-export default function Hero({ children }: HeroProps) {
-  const sectionRef = useRef<HTMLElement | null>(null);
-  const heroRef = useRef<HTMLHeadingElement | null>(null);
-  const topPillRef = useRef<HTMLButtonElement | null>(null);
-  const bottomPillRef = useRef<HTMLButtonElement | null>(null);
-
-  const [topPillPos, setTopPillPos] = useState<{
-    left: number;
-    top: number;
-  } | null>(null);
-  const [bottomPillPos, setBottomPillPos] = useState<{
-    left: number;
-    top: number;
-  } | null>(null);
-  const [topArrowStyle, setTopArrowStyle] =
-    useState<React.CSSProperties | null>(null);
-  const [bottomArrowStyle, setBottomArrowStyle] =
-    useState<React.CSSProperties | null>(null);
-
-  useEffect(() => {
-    function compute() {
-      const sec = sectionRef.current;
-      const hero = heroRef.current;
-      if (!sec || !hero) return;
-      const secRect = sec.getBoundingClientRect();
-      const heroRect = hero.getBoundingClientRect();
-
-      const heroCenterX = heroRect.left - secRect.left + heroRect.width / 2;
-      const heroCenterY = heroRect.top - secRect.top + heroRect.height / 2;
-
-      // bottom pill: anywhere below hero paragraph center, keep inside section bounds
-      const minLeft = 16;
-      const maxLeft = Math.max(100, secRect.width - 120);
-      const bottomLeft =
-        Math.floor(Math.random() * (maxLeft - minLeft)) + minLeft;
-      const bottomTopMin = Math.min(
-        secRect.height - 120,
-        Math.floor(heroCenterY + 40)
-      );
-      const bottomTopMax = Math.max(bottomTopMin + 20, secRect.height - 80);
-      const bottomTop =
-        Math.floor(Math.random() * (bottomTopMax - bottomTopMin)) +
-        bottomTopMin;
-
-      // top pill: above or near hero text
-      const topLeft = Math.floor(Math.random() * (maxLeft - minLeft)) + minLeft;
-      const topTopMax = Math.max(8, Math.floor(heroCenterY - 60));
-      const topTopMin = Math.max(8, Math.floor(heroCenterY - 140));
-      const topTop =
-        Math.floor(Math.random() * (topTopMax - topTopMin + 1)) + topTopMin;
-
-      setBottomPillPos({ left: bottomLeft, top: bottomTop });
-      setTopPillPos({ left: topLeft, top: topTop });
-    }
-
-    compute();
-    window.addEventListener("resize", compute);
-    return () => window.removeEventListener("resize", compute);
-  }, []);
-
-  // compute arrow positions after pill elements render
-  useEffect(() => {
-    function computeArrows() {
-      const sec = sectionRef.current;
-      const topBtn = topPillRef.current;
-      const bottomBtn = bottomPillRef.current;
-      if (!sec || !topBtn || !bottomBtn) return;
-      const secRect = sec.getBoundingClientRect();
-      const topRect = topBtn.getBoundingClientRect();
-      const bottomRect = bottomBtn.getBoundingClientRect();
-
-      // top arrow: place just below top pill (arrow pointing down)
-      const topArrowLeft = topRect.left - secRect.left + topRect.width / 2 - 8;
-      const topArrowTop = topRect.top - secRect.top + topRect.height + 8; // padding between pill and arrow
-
-      // bottom arrow: place just above bottom pill (arrow pointing up)
-      const bottomArrowLeft =
-        bottomRect.left - secRect.left + bottomRect.width / 2 - 8;
-      const bottomArrowTop = bottomRect.top - secRect.top - 18; // place above with small gap
-
-      setTopArrowStyle({ left: topArrowLeft, top: topArrowTop });
-      setBottomArrowStyle({ left: bottomArrowLeft, top: bottomArrowTop });
-    }
-
-    // run after a short delay to allow layout
-    const id = setTimeout(computeArrows, 50);
-    window.addEventListener("resize", computeArrows);
-    return () => {
-      clearTimeout(id);
-      window.removeEventListener("resize", computeArrows);
-    };
-  }, [topPillPos, bottomPillPos]);
+export default function Hero() {
+  const heroRef = useRef<HTMLElement | null>(null);
+  const [svgDone, setSvgDone] = useState(false);
 
   return (
     <section
-      ref={sectionRef}
-      className="min-h-[85dvh] md:min-h-screen w-full relative overflow-hidden flex flex-col pt-28 md:pt-34 border-t rounded-b-2xl bg-[#F9F7F3]"
+      ref={heroRef}
+      className="relative overflow-hidden bg-white py-32 min-h-screen"
     >
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage: `
-            radial-gradient(circle, #E2E0DC 1px, transparent 1px),
-            repeating-linear-gradient(to bottom, rgba(224,220,214,0.06) 0px, rgba(224,220,214,0.06) 0.5px, transparent 0.5px, transparent 50px),
-            repeating-linear-gradient(90deg, rgba(224,220,214,0.06) 0px, rgba(224,220,214,0.06) 0.5px, transparent 0.5px, transparent 50px)
-          `,
-          backgroundSize: "50px 50px, 50px 50px, 50px 50px",
-          backgroundPosition: "0 0, 0 0, 0 0",
-          zIndex: 0,
-        }}
-      />
-
-      <div className="relative z-10 text-center shrink-0 px-4">
-        <motion.h1
-          ref={heroRef}
-          className="hero-title text-3xl sm:text-4xl md:text-5xl lg:text-[48px] leading-tight font-semibold text-black"
-          initial="hidden"
-          animate="visible"
-          variants={{
-            visible: { transition: { staggerChildren: 0.05 } },
-          }}
+      <div className="relative mx-auto -mt-18 h-[300px] max-w-6xl">
+        {/* SVG NETWORK */}
+        <svg
+          className="absolute inset-0 h-full w-full"
+          viewBox="0 0 1200 300"
+          fill="none"
         >
-          {Array.from("Be the Candidate").map((char, i) => (
-            <motion.span
-              key={`l1-${i}`}
-              variants={{
-                hidden: { opacity: 0, y: 20 },
-                visible: { opacity: 1, y: 0 },
-              }}
-              className="inline-block"
-            >
-              {char === " " ? "\u00A0" : char}
-            </motion.span>
-          ))}
-          <br />
-          <span className="crayon-highlight">
-            {Array.from("Companies").map((char, i) => (
-              <motion.span
-                key={`l2-comp-${i}`}
-                variants={{
-                  hidden: { opacity: 0, y: 20 },
-                  visible: { opacity: 1, y: 0 },
-                }}
-                className="inline-block"
-              >
-                {char}
-              </motion.span>
-            ))}
-          </span>
-          {Array.from(" Can’t Ignore").map((char, i) => (
-            <motion.span
-              key={`l2-rest-${i}`}
-              variants={{
-                hidden: { opacity: 0, y: 20 },
-                visible: { opacity: 1, y: 0 },
-              }}
-              className="inline-block"
-            >
-              {char === " " ? "\u00A0" : char}
-            </motion.span>
-          ))}
-        </motion.h1>
+          {/* MAIN LINE */}
+          <motion.line
+            x1="250"
+            y1="150"
+            x2="950"
+            y2="150"
+            stroke="#E5E7EB"
+            strokeWidth="2"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 1.6, ease: "easeInOut" }}
+          />
 
-        <motion.p
-          className="mt-6 text-gray-500 max-w-2xl mx-auto text-base sm:text-sm "
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1, duration: 0.5 }}
-        >
-          The platform built to make students feel prepared, confident, and
-          job-ready throughout their placement journey.
-        </motion.p>
+          {/* LEFT TOP */}
+          <motion.line
+            x1="450"
+            y1="150"
+            x2="400"
+            y2="90"
+            stroke="#E5E7EB"
+            strokeWidth="2"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 1, delay: 0.6 }}
+          />
+          <motion.line
+            x1="400"
+            y1="90"
+            x2="300"
+            y2="90"
+            stroke="#E5E7EB"
+            strokeWidth="2"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.9, delay: 0.85 }}
+          />
+          <motion.circle
+            cx="400"
+            cy="90"
+            r="4"
+            fill="#A855F7"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 1.1, duration: 0.4 }}
+          />
 
+          {/* LEFT BOTTOM */}
+          <motion.line
+            x1="500"
+            y1="150"
+            x2="440"
+            y2="210"
+            stroke="#E5E7EB"
+            strokeWidth="2"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 1, delay: 0.7 }}
+          />
+          <motion.line
+            x1="440"
+            y1="210"
+            x2="360"
+            y2="210"
+            stroke="#E5E7EB"
+            strokeWidth="2"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.9, delay: 0.95 }}
+          />
+          <motion.circle
+            cx="440"
+            cy="210"
+            r="4"
+            fill="#A855F7"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 1.2, duration: 0.4 }}
+          />
+
+          {/* RIGHT TOP */}
+          <motion.line
+            x1="700"
+            y1="150"
+            x2="800"
+            y2="60"
+            stroke="#E5E7EB"
+            strokeWidth="2"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 1, delay: 0.8 }}
+          />
+          <motion.line
+            x1="800"
+            y1="60"
+            x2="850"
+            y2="60"
+            stroke="#E5E7EB"
+            strokeWidth="2"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.9, delay: 1.05 }}
+          />
+          <motion.circle
+            cx="800"
+            cy="60"
+            r="4"
+            fill="#A855F7"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 1.3, duration: 0.4 }}
+          />
+
+          {/* RIGHT BOTTOM */}
+          <motion.line
+            x1="730"
+            y1="150"
+            x2="820"
+            y2="240"
+            stroke="#E5E7EB"
+            strokeWidth="2"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 1, delay: 0.9 }}
+          />
+          <motion.line
+            x1="820"
+            y1="240"
+            x2="880"
+            y2="240"
+            stroke="#E5E7EB"
+            strokeWidth="2"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{
+              duration: 0.9,
+              delay: 1.2,
+              onComplete: () => setSvgDone(true),
+            }}
+          />
+          <motion.circle
+            cx="820"
+            cy="240"
+            r="4"
+            fill="#A855F7"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 1.45, duration: 0.4 }}
+          />
+        </svg>
+
+        {/* CENTER CARD */}
         <motion.div
-          className="mt-8 flex items-center justify-center gap-6"
-          initial={{ scale: 0, opacity: 0 }}
+          initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{
-            delay: 1.2,
-            type: "spring",
-            stiffness: 200,
-            damping: 15,
-          }}
+          transition={{ duration: 0.4 }}
+          className="absolute left-1/2 top-1/2 z-20 h-24 w-24 -translate-x-1/2 -translate-y-1/2"
         >
-          <a
-            href="#"
-            className="inline-flex items-center justify-center bg-[#F86510] text-white px-6 py-3 rounded-full shadow-lg text-sm font-medium hover:shadow-xl transition"
-          >
-            Try free for 14 days
-          </a>
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 blur-2xl opacity-60" />
+          <div className="relative flex h-full w-full items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-xl">
+            <CheckCircle className="h-10 w-10 text-white" strokeWidth={2.5} />
+          </div>
         </motion.div>
-      </div>
 
-      {/* Mobile Card Display (Fan-like at bottom) */}
-      <div className="md:hidden relative w-full h-[300px] mt-8 overflow-hidden">
-        <div className="absolute bottom-0 left-0 h-full flex justify-center items-end pb-12 right-6">
-          <div
-            className="absolute left-30 bottom-11 z-30 scale-[0.6] origin-bottom"
-            style={{
-              transform: "translateX(-50%) translateX(-150px) rotate(-20deg)",
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring" }}
-            >
-              <RecentActivityCard />
-            </motion.div>
-          </div>
-          {/* Left Card - Interview Readiness */}
-          <div
-            className="absolute left-1/2 bottom-[84px] z-10 scale-[0.6] origin-bottom"
-            style={{
-              transform: "translateX(-50%) translateX(-150px) rotate(-20deg)",
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.4, type: "spring" }}
-            >
-              <InterviewReadinessCard />
-            </motion.div>
-          </div>
-
-          {/* Center Card - Skills Analysis */}
-          <div
-            className="absolute left-40 bottom-[70px] z-20 scale-[0.71] mr-20 origin-bottom"
-            style={{
-              transform: "translateX(-50%)",
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.6, type: "spring" }}
-            >
-              <SkillsAnalysisCard />
-            </motion.div>
-          </div>
-
-          {/* Right Card - Resume Score */}
-          <div
-            className="absolute left-1/2 bottom-9 z-10 scale-[0.6] origin-bottom"
-            style={{
-              transform: "translateX(-50%) translateX(150px) rotate(20deg)",
-            }}
-          >
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.8, type: "spring" }}
-            >
-              <ResumeScoreCard />
-            </motion.div>
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop Fan-like Card Display */}
-      <div className="hidden md:block relative w-full max-w-[1400px] mx-auto grow perspective-1000 top-38">
-        <div className="absolute bottom-0 left-0 right-0 h-[500px] flex justify-center items-end pb-20">
-          {/* Index 0: Empty Card (Far Left) */}
-          <div className="absolute left-1/2 bottom-4 z-0 opacity-80 scale-75 lg:scale-85 transition-all duration-500 -rotate-[30deg] translate-x-[calc(-50%_-_220px)] lg:translate-x-[calc(-50%_-_340px)]">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring" }}
-            >
-              <EmptyCard />
-            </motion.div>
-          </div>
-
-          {/* Index 1: Interview Readiness (Left) */}
-          <div className="absolute left-1/2 bottom-28 z-10 scale-75 lg:scale-85 transition-all duration-500 hover:z-40 hover:scale-90 hover:rotate-0 -rotate-[15deg] translate-x-[calc(-50%_-_140px)] lg:translate-x-[calc(-50%_-_210px)]">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.4, type: "spring" }}
-            >
-              <InterviewReadinessCard />
-            </motion.div>
-          </div>
-
-          {/* Index 2: Skills Analysis (Center Left) */}
-          <div className="absolute left-1/2 bottom-36 z-20 scale-90 lg:scale-96 transition-all duration-500 hover:z-50 hover:scale-95 -rotate-[5deg] translate-x-[calc(-50%_-_50px)] lg:translate-x-[calc(-50%_-_75px)]">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.6, type: "spring" }}
-            >
-              <SkillsAnalysisCard />
-            </motion.div>
-          </div>
-
-          {/* Index 3: Resume Score (Center Right) */}
-          <div className="absolute left-1/2 bottom-24 z-20 scale-75 lg:scale-85 transition-all duration-500 hover:z-50 hover:scale-95 rotate-[5deg] translate-x-[calc(-50%_+_50px)] lg:translate-x-[calc(-50%_+_75px)]">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.8, type: "spring" }}
-            >
-              <ResumeScoreCard />
-            </motion.div>
-          </div>
-
-          {/* Index 4: Recent Activity (Right) */}
-          <div className="absolute left-1/2 bottom-18 z-10 scale-75 lg:scale-85 transition-all duration-500 hover:z-40 hover:scale-90 hover:rotate-0 rotate-[15deg] translate-x-[calc(-50%_+_140px)] lg:translate-x-[calc(-50%_+_210px)]">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 1.0, type: "spring" }}
-            >
-              <RecentActivityCard />
-            </motion.div>
-          </div>
-
-          {/* Index 5: Empty Card (Far Right) */}
-          <div className="absolute left-1/2 bottom-4 z-0 opacity-80 scale-65 lg:scale-75 transition-all duration-500 rotate-[30deg] translate-x-[calc(-50%_+_220px)] lg:translate-x-[calc(-50%_+_340px)]">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 1.2, type: "spring" }}
-            >
-              <EmptyCard />
-            </motion.div>
-          </div>
-        </div>
-      </div>
-
-      {/* Floating Cursor Badges */}
-      <motion.div
-        className="absolute left-1 top-17 md:left-[4%] md:top-[55%] z-20 block animate-float-delayed"
-        initial={{ x: -200, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-      >
-        <CursorBadge
-          text="AI Interview"
-          color="#BAEA6A"
-          rotation={90}
-          sharpEdge="top-right"
+        {/* FLOATING CARDS */}
+        <Card className="left-[280px] top-[40px]" delay={0.4} icon="💡" />
+        <Card className="left-[280px] top-[200px]" delay={0.45} icon="👥" />
+        <Card className="right-[280px] top-[40px]" delay={0.5} icon="⚡" />
+        <Avatar className="right-[280px] top-[200px]" delay={0.55} />
+        <Card
+          className="left-[250px] top-[150px] -translate-x-1/2 -translate-y-1/2"
+          delay={0.6}
+          icon="📦"
         />
-      </motion.div>
-
-      <motion.div
-        className="absolute right-[-30] top-75 md:right-[8%] md:top-[30%] z-20 block animate-float-delayed"
-        initial={{ x: 200, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-      >
-        <CursorBadge
-          text="ATS Score"
-          color="#FEB271"
-          rotation={0}
-          sharpEdge="top-left"
+        <Avatar
+          className="left-[950px] top-[150px] -translate-x-1/2 -translate-y-1/2"
+          delay={0.65}
         />
+      </div>
+
+      {/* TEXT */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={svgDone ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.6 }}
+        className="mx-auto max-w-3xl text-center -mt-12"
+      >
+        <h1 className="text-5xl font-bold tracking-tight">
+          All-in-One Career <br /> Accelerator
+        </h1>
+        <p className="mt-4 text-gray-500">
+          Resume fixes, skill gap analysis, and company-specific prep—tailored just
+          for KIIT students
+        </p>
+        <button className="mt-8 rounded-full bg-orange-500 px-8 py-3 text-white shadow-lg">
+          Request a Demo
+        </button>
       </motion.div>
-
-      <style jsx global>{`
-        @keyframes float {
-          0%,
-          100% {
-            transform: translate(0, 0);
-          }
-          50% {
-            transform: translate(20px, -20px);
-          }
-        }
-
-        @keyframes float-left {
-          0%,
-          100% {
-            transform: translate(0, 0);
-          }
-          50% {
-            transform: translate(-20px, -20px);
-          }
-        }
-
-        .animate-float {
-          animation: float 4s ease-in-out infinite;
-        }
-
-        .animate-float-delayed {
-          animation: float-left 4s ease-in-out 2s infinite;
-        }
-
-        @import url("https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,500&display=swap");
-
-        .hero-title {
-          font-family: "DM Sans", sans-serif;
-          font-weight: 500;
-          letter-spacing: -0.03em;
-        }
-
-        .crayon-highlight {
-          position: relative;
-          display: inline-block;
-          margin-right: 0.1em;
-          z-index: 1;
-        }
-
-        .crayon-highlight::before {
-          content: "";
-          position: absolute;
-          top: -30px;
-          left: -10px;
-          right: -10px;
-          bottom: -30px;
-          background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='60' viewBox='0 0 200 65' preserveAspectRatio='none'%3E%3Cfilter id='rough'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.02' numOctaves='3' result='noise'/%3E%3CfeDisplacementMap in='SourceGraphic' in2='noise' scale='3'/%3E%3C/filter%3E%3Cpath d='M10,30 Q50,10 100,30 T190,30' stroke='%23FDE047' stroke-width='40' fill='none' stroke-linecap='round' stroke-linejoin='round' filter='url(%23rough)' opacity='0.9'/%3E%3C/svg%3E")
-            no-repeat center center;
-          background-size: 100% 100%;
-          z-index: -1;
-          transform: rotate(-1deg);
-          pointer-events: none;
-
-          /* Animation: start hidden and rub in */
-          clip-path: inset(0 100% 0 0);
-          animation: rub-in 0.8s ease-out forwards 2s;
-        }
-
-        @keyframes rub-in {
-          0% {
-            clip-path: inset(0 100% 0 0);
-          }
-          100% {
-            clip-path: inset(0 0 0 0);
-          }
-        }
-
-        .pill {
-          z-index: 30;
-        }
-
-        .pill-arrow {
-          width: 0;
-          height: 0;
-          z-index: 25;
-        }
-
-        .pill-arrow.up {
-          border-left: 8px solid transparent;
-          border-right: 8px solid transparent;
-          border-bottom: 12px solid #000;
-        }
-
-        .pill-arrow.down {
-          border-left: 8px solid transparent;
-          border-right: 8px solid transparent;
-          border-top: 12px solid #000;
-        }
-
-        /* small connector line to make arrow feel like pointing to hero text */
-        .pill-arrow::after {
-          content: "";
-          position: absolute;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 28px;
-          height: 2px;
-          background: #000;
-        }
-
-        .pill-arrow.up::after {
-          top: -10px;
-        }
-
-        .pill-arrow.down::after {
-          top: 12px;
-        }
-      `}</style>
     </section>
+  );
+}
+
+/* CARD */
+function Card({ className, delay, icon }: any) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      className={`absolute flex h-16 w-16 items-center justify-center rounded-xl bg-white shadow-md ${className}`}
+    >
+      <span className="text-2xl">{icon}</span>
+    </motion.div>
+  );
+}
+
+/* AVATAR */
+function Avatar({ className, delay }: any) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      className={`absolute h-16 w-16 overflow-hidden rounded-full bg-white shadow-md ${className}`}
+    >
+      <Image src="/avatar.jpg" alt="avatar" width={64} height={64} />
+    </motion.div>
   );
 }

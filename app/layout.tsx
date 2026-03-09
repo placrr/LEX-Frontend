@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono,Inter,Quicksand } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import NavbarWrapper from "@/components/layouts/NavbarWrapper";
 import "./globals.css";
