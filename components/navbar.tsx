@@ -19,8 +19,6 @@ interface NavbarProps {
 
 export default function Navbar({ user }: NavbarProps) {
 
-  console.log("Navbar user:", user)
-
   const [hovered, setHovered] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openUserMenu, setOpenUserMenu] = useState(false);
@@ -94,7 +92,6 @@ export default function Navbar({ user }: NavbarProps) {
             {/* Language */}
             <button
               className="bg-white rounded-full px-2 py-2 hover:bg-gray-50 transition shadow-sm cursor-pointer"
-              aria-label="Select language"
             >
               <img
                 src="https://img.icons8.com/?size=25&id=esGVrxg9VCJ1&format=png&color=000000"
@@ -205,7 +202,7 @@ export default function Navbar({ user }: NavbarProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="bg-white rounded-full shadow-sm relative overflow-hidden cursor-pointer"
+              className="bg-white rounded-full shadow-sm cursor-pointer"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
 
@@ -217,7 +214,6 @@ export default function Navbar({ user }: NavbarProps) {
                     initial={{ rotate: -90, opacity: 0 }}
                     animate={{ rotate: 0, opacity: 1 }}
                     exit={{ rotate: 90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
                   >
                     <X className="h-6 w-6" />
                   </motion.div>
@@ -227,7 +223,6 @@ export default function Navbar({ user }: NavbarProps) {
                     initial={{ rotate: 90, opacity: 0 }}
                     animate={{ rotate: 0, opacity: 1 }}
                     exit={{ rotate: -90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
                   >
                     <Menu className="h-6 w-6" />
                   </motion.div>
@@ -261,7 +256,7 @@ export default function Navbar({ user }: NavbarProps) {
               className="fixed top-0 left-0 right-0 bg-white z-40 md:hidden shadow-xl rounded-b-3xl overflow-hidden flex flex-col"
             >
 
-              <div className="flex flex-col gap-6 p-8 pt-24 pb-8">
+              <div className="flex flex-col gap-6 p-8 pt-24 pb-10">
 
                 {navItems.map((item) => (
                   <Link
@@ -278,37 +273,56 @@ export default function Navbar({ user }: NavbarProps) {
 
                 {user ? (
 
-                  <button
-                    onClick={handleLogout}
-                    className="bg-black hover:bg-gray-800 text-white px-6 py-3 rounded-full text-base font-medium transition w-full cursor-pointer"
-                  >
-                    Logout
-                  </button>
+                  <div className="flex flex-col gap-4">
+
+                    {/* User Info */}
+                    <div className="flex items-center gap-3 border-b pb-4">
+
+                      <div className="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center text-sm font-medium">
+                        {user.name?.charAt(0) || "U"}
+                      </div>
+
+                      <div>
+                        <div className="text-sm font-semibold">
+                          {user.name}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {user.email}
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <button
+                      onClick={() => router.push("/dashboard")}
+                      className="w-full bg-gray-100 text-gray-900 px-6 py-3 rounded-full text-base font-medium hover:bg-gray-200 transition cursor-pointer"
+                    >
+                      Dashboard
+                    </button>
+
+                    <button
+                      onClick={() => router.push("/pricing")}
+                      className="w-full bg-gray-100 text-gray-900 px-6 py-3 rounded-full text-base font-medium hover:bg-gray-200 transition cursor-pointer"
+                    >
+                      Upgrade Plan
+                    </button>
+
+                    <button
+                      onClick={handleLogout}
+                      className="w-full bg-black text-white px-6 py-3 rounded-full text-base font-medium hover:bg-gray-800 transition cursor-pointer"
+                    >
+                      Logout
+                    </button>
+
+                  </div>
 
                 ) : (
 
-                  <motion.div whileTap={{ scale: 0.95 }} className="w-full">
-                    <Link href="/login">
-                      <button
-                        className="
-                        bg-black
-                        hover:bg-gray-800
-                        text-white
-                        px-6
-                        py-3
-                        rounded-full
-                        text-base
-                        font-medium
-                        transition
-                        shadow-md
-                        w-full
-                        cursor-pointer
-                        "
-                      >
-                        Login / Sign Up
-                      </button>
-                    </Link>
-                  </motion.div>
+                  <Link href="/login">
+                    <button className="bg-black text-white px-6 py-3 rounded-full text-base font-medium transition shadow-md w-full cursor-pointer">
+                      Login / Sign Up
+                    </button>
+                  </Link>
 
                 )}
               </div>

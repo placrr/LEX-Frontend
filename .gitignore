@@ -1,7 +1,7 @@
 # dependencies
 node_modules
 
-
+.env
 # next.js
 .next/
 /lib/generated/prisma
