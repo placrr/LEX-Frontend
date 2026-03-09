@@ -8,7 +8,7 @@ providers: [
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     authorization: {
       params: {
-        prompt: "select_account",   // 👈 force account chooser
+        prompt: "select_account",   
         hd: "kiit.ac.in"
       }
     }

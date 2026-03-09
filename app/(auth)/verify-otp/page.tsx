@@ -9,47 +9,30 @@ export default function VerifyOTPPage() {
 
   const router = useRouter()
   const searchParams = useSearchParams()
-
   const authSessionId = searchParams.get("session")
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
   const [loading, setLoading] = useState(true)
   const [verified, setVerified] = useState(false)
-  const [attempts, setAttempts] = useState(0)
   const [cooldown, setCooldown] = useState(30)
+  const [error, setError] = useState("")
+  const [verifying, setVerifying] = useState(false)
 
   const inputs = useRef<(HTMLInputElement | null)[]>([])
 
-  // 5 SECOND LOADING SCREEN
+  // Loading screen
   useEffect(() => {
-
     const timer = setTimeout(() => {
       setLoading(false)
     }, 5000)
 
     return () => clearTimeout(timer)
-
   }, [])
 
-
-  // OTP START
+  // Autofocus first box
   useEffect(() => {
-
-    if (!authSessionId) return
-
-    fetch("/api/otp/start", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        authSessionId
-      })
-    })
-
-  }, [authSessionId])
-
-
+    if (!loading) inputs.current[0]?.focus()
+  }, [loading])
 
   // Cooldown timer
   useEffect(() => {
@@ -66,7 +49,7 @@ export default function VerifyOTPPage() {
 
 
 
-  // PREMIUM LOADING SCREEN
+  // Loading UI
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50">
@@ -74,7 +57,7 @@ export default function VerifyOTPPage() {
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white p-10 rounded-xl shadow-lg text-center space-y-4"
+          className="bg-white px-12 py-12 rounded-2xl shadow-lg text-center space-y-4"
         >
 
           <div className="text-2xl font-semibold">
@@ -97,15 +80,15 @@ export default function VerifyOTPPage() {
 
 
 
-  // VERIFIED ANIMATION
+  // Success animation
   if (verified) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50">
 
         <motion.div
-          initial={{ scale: 0.5, opacity: 0 }}
+          initial={{ scale: 0.6, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="bg-white p-10 rounded-xl shadow-lg text-center"
+          className="bg-white px-12 py-12 rounded-2xl shadow-lg text-center"
         >
 
           <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
@@ -123,6 +106,7 @@ export default function VerifyOTPPage() {
 
 
   function clearOTP() {
+
     setOtp(["", "", "", "", "", ""])
 
     inputs.current.forEach((input) => {
@@ -144,6 +128,12 @@ export default function VerifyOTPPage() {
 
     if (value && index < 5) {
       inputs.current[index + 1]?.focus()
+    }
+
+    // auto verify when last digit entered
+    if (index === 5 && value) {
+      const finalOtp = [...newOtp].join("")
+      verifyOTP(finalOtp)
     }
   }
 
@@ -172,22 +162,22 @@ export default function VerifyOTPPage() {
         inputs.current[i]!.value = digit
       }
     })
+
+    if (paste.length === 6) {
+      verifyOTP(paste)
+    }
   }
 
 
 
-  async function handleVerify(e: React.FormEvent) {
+  async function verifyOTP(otpValue: string) {
 
-    e.preventDefault()
+    if (verifying) return
+
+    setVerifying(true)
+    setError("")
 
     if (!authSessionId) return
-
-    const otpValue = otp.join("")
-
-    if (otpValue.length !== 6) {
-      alert("Enter complete 6-digit OTP")
-      return
-    }
 
     const res = await fetch("/api/otp/verify", {
       method: "POST",
@@ -213,12 +203,27 @@ export default function VerifyOTPPage() {
 
     } else {
 
-      setAttempts(prev => prev + 1)
-
       clearOTP()
-
-      alert(data.error || "Verification failed")
+      setError(data.error || "Verification failed")
     }
+
+    setVerifying(false)
+  }
+
+
+
+  async function handleVerify(e: React.FormEvent) {
+
+    e.preventDefault()
+
+    const otpValue = otp.join("")
+
+    if (otpValue.length !== 6) {
+      setError("Enter complete 6-digit OTP")
+      return
+    }
+
+    verifyOTP(otpValue)
   }
 
 
@@ -226,8 +231,7 @@ export default function VerifyOTPPage() {
   async function resendOTP() {
 
     if (!authSessionId) {
-      alert("Session expired. Please login again.")
-      router.replace("/login")
+      setError("Session expired. Please login again.")
       return
     }
 
@@ -244,12 +248,11 @@ export default function VerifyOTPPage() {
     const data = await res.json()
 
     if (!res.ok) {
-      alert(data.error || "Failed to resend OTP")
+      setError(data.error || "Failed to resend OTP")
       return
     }
 
-    alert("OTP sent again to your email")
-
+    setError("OTP sent again to your email")
     setCooldown(30)
   }
 
@@ -260,7 +263,7 @@ export default function VerifyOTPPage() {
 
       <form
         onSubmit={handleVerify}
-        className="p-10 bg-white border rounded-xl shadow-lg space-y-6 w-96 text-center"
+        className="bg-white border rounded-2xl shadow-lg px-16 py-14 space-y-8 w-[460px] text-center"
       >
 
         <h1 className="text-2xl font-semibold">
@@ -275,7 +278,7 @@ export default function VerifyOTPPage() {
 
         {/* OTP INPUTS */}
 
-        <div className="flex justify-between gap-3">
+        <div className="flex justify-center gap-6">
 
           {otp.map((digit, index) => (
             <input
@@ -283,17 +286,30 @@ export default function VerifyOTPPage() {
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
+              autoComplete="one-time-code"
               maxLength={1}
+              value={digit}
               ref={(el) => { inputs.current[index] = el }}
-              className="w-12 h-12 text-center border rounded-lg text-lg font-semibold 
-              focus:outline-none focus:ring-2 focus:ring-black
-              transition"
-              onChange={(e) =>
-                handleChange(e.target.value, index)
-              }
-              onKeyDown={(e) =>
-                handleKeyDown(e, index)
-              }
+              className="
+              w-14 h-16
+              text-center
+              text-xl
+              font-bold
+              rounded-xl
+              border
+              border-gray-300
+              bg-white
+              shadow-sm
+              transition-all
+              duration-200
+              focus:outline-none
+              focus:ring-2
+              focus:ring-black
+              focus:border-black
+              hover:border-gray-500
+              "
+              onChange={(e) => handleChange(e.target.value, index)}
+              onKeyDown={(e) => handleKeyDown(e, index)}
               onPaste={handlePaste}
             />
           ))}
@@ -302,38 +318,38 @@ export default function VerifyOTPPage() {
 
 
 
-        {/* VERIFY BUTTON */}
+        {/* Error / success message */}
 
-        <button
-          type="submit"
-          className="w-full bg-black text-white py-2 rounded-lg 
-          transition 
-          hover:bg-gray-800 
-          active:scale-95 cursor-pointer"
-        >
-          Verify OTP
-        </button>
-
-
-
-        {attempts > 0 && (
-          <p className="text-sm text-gray-500">
-            Attempts used: {attempts} / 5
+        {error && (
+          <p className={`text-sm ${error.includes("sent") ? "text-green-600" : "text-red-500"}`}>
+            {error}
           </p>
         )}
 
 
 
-        {/* RESEND BUTTON */}
+        {/* Verify button */}
+
+        <button
+          type="submit"
+          disabled={verifying}
+          className="w-full bg-black text-white py-2 rounded-lg 
+          transition hover:bg-gray-800 active:scale-95 
+          disabled:opacity-50 cursor-pointer"
+        >
+          {verifying ? "Verifying..." : "Verify OTP"}
+        </button>
+
+
+
+        {/* Resend button */}
 
         <button
           type="button"
           onClick={resendOTP}
           disabled={cooldown > 0}
           className="w-full border py-2 rounded-lg 
-          transition 
-          hover:bg-gray-100 
-          active:scale-95 
+          transition hover:bg-gray-100 active:scale-95 
           disabled:opacity-50 cursor-pointer"
         >
           {cooldown > 0
