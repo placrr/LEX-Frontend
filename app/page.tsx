@@ -1,6 +1,5 @@
 "use client";
 
-import Navbar from "@/components/navbar";
 import Hero from "@/components/hero";
 import Features from "@/components/Features";
 import BuildForEveryoneSection from "@/components/BuildForEveryoneSection";
@@ -13,8 +12,9 @@ export default function Home() {
     <main className="relative min-h-screen bg-white overflow-x-hidden">
       <Navbar />
 
-      {/* HERO */}
-      <Hero />
+      <div className="relative z-10">
+        <div className="absolute top-0 left-0 right-0 z-50">
+        </div>
 
       {/* FEATURES */}
       <Features />
