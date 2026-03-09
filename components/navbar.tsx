@@ -1,166 +1,118 @@
-"use client";
+// Navbar.tsx
+import React, { useEffect, useState } from "react";
+import clsx from "clsx";
 
-import { Flag, Menu, X } from "lucide-react";
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
+const Navbar: React.FC = () => {
+  const [scrolled, setScrolled] = useState(false);
 
-export default function Navbar() {
-  const [hovered, setHovered] = useState<string | null>(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 40);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-  const navItems = [
-    { label: "Features", href: "#", color: "#F86510", textOnHover: "#ffffff" },
-    { label: "Pricing", href: "#", color: "#BBE96A", textOnHover: "#000000" },
-    { label: "About", href: "#", color: "#89CCF9", textOnHover: "#ffffff" },
-  ];
+  const scrollToId = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const offset = window.scrollY + rect.top - 80;
+    window.scrollTo({ top: offset, behavior: "smooth" });
+  };
 
   return (
-    <>
-      <nav className="sticky top-0 z-50 bg-transparent">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-4 relative">
-          {/* Logo */}
-          <div className="shrink-0 z-50">
-            <a
-              href="/"
-              className="text-2xl font-semibold text-gray-900 bg-white rounded-full px-5 py-2  hover:text-gray-900 hover:bg-gray-50 transition-colors shadow-sm"
-            >
-              Lex.
-            </a>
-          </div>
+    <header
+      className={clsx(
+        "fixed inset-x-0 top-0 z-30 flex justify-center px-2 pt-2 sm:px-4 sm:pt-4",
+        "transition-all duration-300 ease-out",
+        scrolled ? "backdrop-blur-xl" : "backdrop-blur-none"
+      )}
+    >
+      {/* Outer boxed navbar, shorter width */}
+      <nav
+        className={clsx(
+          "flex w-full max-w-2xl items-center justify-between rounded-full border",
+          "px-4 py-1.5 sm:px-6 sm:py-2",
+          "bg-white/95 border-purple-100 shadow-sm",
+          scrolled &&
+            "shadow-[0_10px_30px_rgba(124,58,237,0.25)] bg-white/98"
+        )}
+      >
+        {/* Left: Lex logo */}
+        <div className="font-sans text-[20px] font-semibold tracking-[-0.16em] text-purple-700">
+          Lex
+        </div>
 
-          {/* Center Navigation Items - Desktop */}
-          <div className="hidden md:flex items-center gap-6 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            {navItems.map((item) => {
-              const isHovered = hovered === item.label;
-              const style: React.CSSProperties = {
-                backgroundImage: `linear-gradient(to right, ${item.color}, ${item.color})`,
-                backgroundSize: isHovered ? "100% 100%" : "0% 100%",
-                backgroundRepeat: "no-repeat",
-                transition: "background-size 300ms ease, color 300ms ease",
-                color: isHovered ? item.textOnHover : undefined,
-              };
+        {/* Center: nav links with minimal gaps */}
+        <div className="hidden items-center gap-4 text-[13px] font-medium text-purple-900/80 sm:flex">
+          <button
+            type="button"
+            onClick={() => scrollToId("features")}
+            className="relative inline-flex items-center transition-colors duration-200 ease-out hover:text-purple-600"
+          >
+            <span className="text-[15px] text-black  after:absolute after:-bottom-1 after:left-0 after:h-[1px] after:w-0 after:bg-pink-500 after:transition-[width] after:duration-200 after:ease-out hover:after:w-full">
+              Features
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollToId("pricing")}
+            className="relative inline-flex items-center transition-colors duration-200 ease-out hover:text-purple-600"
+          >
+            <span className="text-[15px]  text-black  after:absolute after:-bottom-1 after:left-0 after:h-[1px] after:w-0 after:bg-pink-500 after:transition-[width] after:duration-200 after:ease-out hover:after:w-full">
+              Pricing
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollToId("about")}
+            className="relative inline-flex items-center transition-colors duration-200 ease-out hover:text-purple-600"
+          >
+            <span className="text-[15px]  text-black  after:absolute after:-bottom-1 after:left-0 after:h-[1px] after:w-0 after:bg-pink-500 after:transition-[width] after:duration-200 after:ease-out hover:after:w-full">
+              About
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollToId("Contact")}
+            className="relative inline-flex items-center transition-colors duration-200 ease-out hover:text-purple-600"
+          >
+            <span className="text-[15px] text-black  after:absolute after:-bottom-1 after:left-0 after:h-[1px] after:w-0 after:bg-pink-500 after:transition-[width] after:duration-200 after:ease-out hover:after:w-full">
+            Contact
+            </span>
+          </button>
+        </div>
 
-              return (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  onMouseEnter={() => setHovered(item.label)}
-                  onMouseLeave={() => setHovered(null)}
-                  className="bg-white rounded-full px-6 py-2 text-gray-500 text-sm font-medium shadow-sm"
-                  style={style}
-                >
-                  {item.label}
-                </a>
-              );
-            })}
-          </div>
-
-          {/* Right Side - Language Selector & CTA */}
-          <div className="hidden md:flex items-center gap-3">
-            <button
-              className="bg-white rounded-full px-2 py-2 hover:bg-gray-50 transition-colors shadow-sm"
-              aria-label="Select language"
-            >
-              <img src="https://img.icons8.com/?size=25&id=esGVrxg9VCJ1&format=png&color=000000"></img>
-            </button>
-
-            {/* CTA Button */}
-            <button className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-full text-sm font-medium transition-colors">
-              Login / Sign Up
-            </button>
-          </div>
-
-          {/* Mobile Menu Toggle */}
-          <div className="md:hidden flex items-center gap-2 z-50">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="bg-white rounded-full shadow-sm relative overflow-hidden"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              <AnimatePresence mode="wait" initial={false}>
-                {isMobileMenuOpen ? (
-                  <motion.div
-                    key="close"
-                    initial={{ rotate: -90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: 90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <X className="h-6 w-6" />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="menu"
-                    initial={{ rotate: 90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: -90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Menu className="h-6 w-6" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </Button>
-          </div>
+        {/* Right: Sign in + Request Demo boxed buttons */}
+        <div className="flex items-center gap-2 text-[13px] font-medium">
+          <button
+            type="button"
+            onClick={() => scrollToId("signin")}
+            className={clsx(
+              "inline-flex items-center justify-center rounded-full border px-3 py-1.5",
+              "border-purple-100 bg-white text-purple-700",
+              "transition-all duration-200 ease-out hover:bg-purple-50 hover:border-purple-200 hover:text-purple-800"
+            )}
+          >
+            Sign In
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollToId("demo")}
+            className={clsx(
+              "inline-flex items-center justify-center rounded-full px-4 py-1.5",
+              "bg-purple-700 text-white",
+              // "shadow-[0_8px_22px_rgba(255,105,180,0.5),0_6px_18px_rgba(124,58,237,0.4)]",
+              // "transition-transform duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(255,105,180,0.55),0_10px_24px_rgba(124,58,237,0.45)]"
+            )}
+          >
+            Request Demo
+          </button>
         </div>
       </nav>
-
-      {/* Mobile Menu Overlay */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-black/20 z-40 md:hidden"
-            />
-
-            {/* Menu Content */}
-            <motion.div
-              initial={{ y: "-100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "-100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 left-0 right-0 h-auto bg-white z-40 md:hidden shadow-xl rounded-b-3xl overflow-hidden flex flex-col"
-            >
-              <div className="flex flex-col gap-6 p-8 pt-24 pb-8 overflow-y-auto">
-                <div className="flex flex-col gap-4">
-                  {navItems.map((item) => (
-                    <a
-                      key={item.label}
-                      href={item.href}
-                      className="text-2xl font-medium text-gray-900 hover:text-gray-600"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {item.label}
-                    </a>
-                  ))}
-                </div>
-
-                <div className="h-px bg-gray-100 w-full" />
-
-                <div className="flex items-center gap-3 mt-2">
-                  <button className="w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 hover:bg-gray-200 transition-colors border border-gray-200">
-                    <img
-                      src="https://img.icons8.com/?size=25&id=esGVrxg9VCJ1&format=png&color=000000"
-                      alt="Language"
-                      className="w-6 h-6"
-                    />
-                  </button>
-                  <button className="bg-black hover:bg-gray-800 text-white px-6 py-3 rounded-full text-base font-medium transition-colors w-full">
-                    Login / Sign Up
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-    </>
+    </header>
   );
-}
+};
+
+export default Navbar;
