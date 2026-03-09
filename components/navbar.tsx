@@ -1,4 +1,6 @@
-"use client";
+// Navbar.tsx
+import React, { useEffect, useState } from "react";
+import clsx from "clsx";
 
 import { Menu, X, ChevronDown } from "lucide-react";
 import React, { useState } from "react";
@@ -35,11 +37,13 @@ export default function Navbar({ user }: NavbarProps) {
     }
   }
 
-  const navItems = [
-    { label: "Features", href: "#", color: "#F86510", textOnHover: "#ffffff" },
-    { label: "Pricing", href: "#", color: "#BBE96A", textOnHover: "#000000" },
-    { label: "About", href: "#", color: "#89CCF9", textOnHover: "#ffffff" },
-  ];
+  const scrollToId = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const offset = window.scrollY + rect.top - 80;
+    window.scrollTo({ top: offset, behavior: "smooth" });
+  };
 
   return (
     <>
