@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth-options"
+import { prisma } from "@/lib/prisma"
 import { redis } from "@/lib/redis"
 import { sendOTPEmail } from "@/lib/email"
-import { randomUUID } from "crypto"
+import { randomUUID, randomInt } from "node:crypto"
 
 export async function POST(req: Request) {
 
@@ -20,24 +21,41 @@ export async function POST(req: Request) {
 
     const body = await req.json()
 
-const rollNo = body.rollNo
+const rollNo = String(body.rollNo ?? "").trim()
 const year = Number(body.year)
 
-if (!rollNo || !year) {
+if (!rollNo || rollNo.length > 20) {
   return NextResponse.json(
-    { error: "Invalid profile data" },
+    { error: "Invalid roll number" },
     { status: 400 }
   )
 }
+
+if (!Number.isInteger(year) || year < 1 || year > 4) {
+  return NextResponse.json(
+    { error: "Invalid year" },
+    { status: 400 }
+  )
+}
+
+    // Check if roll number is already registered
+    const existing = await prisma.user.findUnique({
+      where: { rollNo: String(rollNo) }
+    })
+
+    if (existing) {
+      return NextResponse.json(
+        { error: "This roll number is already registered with another account." },
+        { status: 409 }
+      )
+    }
 
     const email = session.user.email
     const name = session.user.name
 
     // 🔹 Generate OTP
     const otp =
-      Math.floor(100000 + Math.random() * 900000).toString()
-
-    console.log("OTP:", otp)
+      randomInt(100000, 999999).toString()
 
     // 🔹 Create temporary auth session
     const authSessionId = randomUUID()
@@ -57,8 +75,8 @@ if (!rollNo || !year) {
       { ex: 1800 }
     )
 
-    // 🔹 Send OTP email async
-    sendOTPEmail(email, otp).catch(console.error)
+    // 🔹 Send OTP email (await so client knows email was sent before routing)
+    await sendOTPEmail(email, otp)
 
     return NextResponse.json({
       success: true,

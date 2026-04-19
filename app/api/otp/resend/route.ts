@@ -1,13 +1,9 @@
 import { NextResponse } from "next/server"
+import { randomInt } from "node:crypto"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth-options"
 import { redis } from "@/lib/redis"
 import { sendOTPEmail } from "@/lib/email"
-
-type Profile = {
-  email: string
-  name: string
-  rollNo: string
-  year: number
-}
 
 export async function POST(req: Request) {
 
@@ -20,36 +16,37 @@ export async function POST(req: Request) {
     )
   }
 
-  const profileRaw =
-    await redis.get(`profile:${authSessionId}`)
+  // Try to get email from Redis profile first
+  let email: string | null = null
 
-  console.log("Resend profileRaw:", profileRaw)
+  const profileRaw = await redis.get(`profile:${authSessionId}`)
 
-  if (!profileRaw) {
+  if (profileRaw) {
+    const profile = typeof profileRaw === "string" ? JSON.parse(profileRaw) : profileRaw
+    email = profile.email
+
+    // Extend profile TTL so it survives lockout periods
+    await redis.expire(`profile:${authSessionId}`, 3600)
+  }
+
+  // Fallback: get email from NextAuth session (for existing users)
+  if (!email) {
+    const session = await getServerSession(authOptions)
+    email = session?.user?.email ?? null
+  }
+
+  if (!email) {
     return NextResponse.json(
-      { error: "Session expired. Please start again." },
+      { error: "Session expired. Please login again." },
       { status: 400 }
     )
   }
 
-let profile
-
-if (typeof profileRaw === "string") {
-  profile = JSON.parse(profileRaw)
-} else {
-  profile = profileRaw
-}
-
-  const otp =
-    Math.floor(100000 + Math.random() * 900000).toString()
-
-  console.log("Resent OTP:", otp)
+  const otp = randomInt(100000, 999999).toString()
 
   await redis.set(`otp:${authSessionId}`, otp, { ex: 300 })
 
-  sendOTPEmail(profile.email, otp).catch(console.error)
+  sendOTPEmail(email, otp).catch(() => {})
 
-  return NextResponse.json({
-    success: true
-  })
+  return NextResponse.json({ success: true })
 }

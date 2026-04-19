@@ -1,13 +1,26 @@
+"use client";
+
 // Navbar.tsx
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import clsx from "clsx";
 
-import { Menu, X, ChevronDown } from "lucide-react";
-import React, { useState } from "react";
+import { Menu, X, ChevronDown, ChevronRight, Loader2, FileSearch, Mic, Briefcase } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+
+const featureItems = [
+  { label: "ATS Resume Checker", href: "/ats", icon: FileSearch, description: "Optimize your resume for ATS" },
+  { label: "AI Interview Prep", href: "/interview", icon: Mic, description: "Practice with AI mock interviews" },
+  { label: "Job Informer", href: "/jobs", icon: Briefcase, description: "Personalized job recommendations" },
+];
+
+const navItems = [
+  { label: "Features", href: "#", color: "#F86510", textOnHover: "#ffffff", hasDropdown: true },
+  { label: "Pricing", href: "/#pricing", color: "#BBE96A", textOnHover: "#000000" },
+  { label: "About", href: "/#about", color: "#89CCF9", textOnHover: "#ffffff" },
+];
 
 interface NavbarUser {
   name: string | null;
@@ -24,26 +37,50 @@ export default function Navbar({ user }: NavbarProps) {
   const [hovered, setHovered] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openUserMenu, setOpenUserMenu] = useState(false);
+  const [navigating, setNavigating] = useState(false);
+  const [featuresOpen, setFeaturesOpen] = useState(false);
+  const [mobileFeatures, setMobileFeatures] = useState(false);
+  const featuresRef = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
+  const pathname = usePathname();
 
-  async function handleLogout() {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-      router.push("/");
-      router.refresh();
-    } catch (err) {
-      console.error("Logout failed", err);
+  // Reset spinner when navigation completes (root layout persists across routes)
+  useEffect(() => {
+    setNavigating(false);
+    setFeaturesOpen(false);
+    setMobileFeatures(false);
+  }, [pathname]);
+
+  // Close features dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (featuresRef.current && !featuresRef.current.contains(e.target as Node)) {
+        setFeaturesOpen(false);
+      }
     }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Hide navbar on auth routes (works for client-side navigation too)
+  const hiddenRoutes = ["/login", "/after-oauth", "/complete-profile", "/verify-otp"];
+  if (hiddenRoutes.some(route => pathname.startsWith(route))) {
+    return null;
   }
 
-  const scrollToId = (id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const offset = window.scrollY + rect.top - 80;
-    window.scrollTo({ top: offset, behavior: "smooth" });
-  };
+  function handleLoginClick() {
+    if (navigating) return;
+    setNavigating(true);
+    router.push("/login");
+  }
+
+  async function handleLogout() {
+    const logout = fetch("/api/auth/logout", { method: "POST" });
+    router.push("/");
+    await logout;
+    router.refresh();
+  }
 
   return (
     <>
@@ -56,7 +93,7 @@ export default function Navbar({ user }: NavbarProps) {
               href="/"
               className="text-2xl font-semibold text-gray-900 bg-white rounded-full px-5 py-2 hover:bg-gray-50 transition shadow-sm cursor-pointer"
             >
-              Lex.
+              Placr.
             </Link>
           </div>
 
@@ -74,6 +111,55 @@ export default function Navbar({ user }: NavbarProps) {
                 transition: "background-size 300ms ease, color 300ms ease",
                 color: isHovered ? item.textOnHover : undefined,
               };
+
+              if (item.hasDropdown) {
+                return (
+                  <div key={item.label} ref={featuresRef} className="relative">
+                    <button
+                      onClick={() => setFeaturesOpen(!featuresOpen)}
+                      onMouseEnter={() => setHovered(item.label)}
+                      onMouseLeave={() => setHovered(null)}
+                      className="bg-white rounded-full px-6 py-2 text-gray-500 text-sm font-medium shadow-sm cursor-pointer flex items-center gap-1"
+                      style={style}
+                    >
+                      {item.label}
+                      <ChevronDown className={clsx("w-3.5 h-3.5 transition-transform duration-200", featuresOpen && "rotate-180")} />
+                    </button>
+
+                    <AnimatePresence>
+                      {featuresOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -8 }}
+                          transition={{ duration: 0.18 }}
+                          className="absolute left-1/2 -translate-x-1/2 mt-3 w-72 bg-white rounded-2xl shadow-lg border border-gray-100 p-2 z-50"
+                        >
+                          {featureItems.map((fi) => {
+                            const Icon = fi.icon;
+                            return (
+                              <Link
+                                key={fi.href}
+                                href={fi.href}
+                                onClick={() => setFeaturesOpen(false)}
+                                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition group"
+                              >
+                                <div className="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center shrink-0 group-hover:bg-orange-100 transition">
+                                  <Icon className="w-4.5 h-4.5 text-orange-600" />
+                                </div>
+                                <div>
+                                  <div className="text-sm font-medium text-gray-900">{fi.label}</div>
+                                  <div className="text-xs text-gray-500">{fi.description}</div>
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              }
 
               return (
                 <Link
@@ -95,12 +181,11 @@ export default function Navbar({ user }: NavbarProps) {
 
             {/* Language */}
             <button
-              className="bg-white rounded-full px-2 py-2 hover:bg-gray-50 transition shadow-sm cursor-pointer"
+              className="bg-white rounded-full p-2 hover:bg-gray-50 transition shadow-sm cursor-pointer"
             >
-              <img
-                src="https://img.icons8.com/?size=25&id=esGVrxg9VCJ1&format=png&color=000000"
-                alt="Language"
-              />
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5a17.92 17.92 0 01-8.716-2.247m0 0A9 9 0 013 12c0-1.47.353-2.856.978-4.082" />
+              </svg>
             </button>
 
             {/* Auth Section */}
@@ -151,7 +236,7 @@ export default function Navbar({ user }: NavbarProps) {
                       </button>
 
                       <button
-                        onClick={() => router.push("/pricing")}
+                        onClick={() => router.push("/#pricing")}
                         className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded-lg cursor-pointer"
                       >
                         Upgrade Plan
@@ -173,28 +258,34 @@ export default function Navbar({ user }: NavbarProps) {
             ) : (
 
               <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: navigating ? 1 : 1.05 }}
+                whileTap={{ scale: navigating ? 1 : 0.95 }}
               >
-                <Link href="/login">
-                  <button
-                    className="
-                    bg-gray-900
-                    hover:bg-gray-800
-                    text-white
-                    px-6
-                    py-3
-                    rounded-full
-                    text-sm
-                    font-medium
-                    shadow-md
-                    transition
-                    cursor-pointer
-                    "
-                  >
-                    Login / Sign Up
-                  </button>
-                </Link>
+                <button
+                  onClick={handleLoginClick}
+                  disabled={navigating}
+                  className="
+                  bg-gray-900
+                  hover:bg-gray-800
+                  disabled:opacity-60
+                  disabled:cursor-not-allowed
+                  text-white
+                  px-6
+                  py-3
+                  rounded-full
+                  text-sm
+                  font-medium
+                  shadow-md
+                  transition
+                  cursor-pointer
+                  flex items-center gap-2
+                  "
+                >
+                  {navigating
+                    ? <><Loader2 className="w-4 h-4 animate-spin" /> Redirecting…</>
+                    : "Login / Sign Up"
+                  }
+                </button>
               </motion.div>
 
             )}
@@ -262,16 +353,61 @@ export default function Navbar({ user }: NavbarProps) {
 
               <div className="flex flex-col gap-6 p-8 pt-24 pb-10">
 
-                {navItems.map((item) => (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="text-2xl font-medium text-gray-900 hover:text-gray-600 cursor-pointer"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+                {navItems.map((item) => {
+                  if (item.hasDropdown) {
+                    return (
+                      <div key={item.label} className="flex flex-col">
+                        <button
+                          onClick={() => setMobileFeatures(!mobileFeatures)}
+                          className="text-2xl font-medium text-gray-900 hover:text-gray-600 cursor-pointer flex items-center gap-2 text-left"
+                        >
+                          {item.label}
+                          <ChevronRight className={clsx("w-5 h-5 transition-transform duration-200", mobileFeatures && "rotate-90")} />
+                        </button>
+
+                        <AnimatePresence>
+                          {mobileFeatures && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="flex flex-col gap-2 pl-4 pt-3">
+                                {featureItems.map((fi) => {
+                                  const Icon = fi.icon;
+                                  return (
+                                    <Link
+                                      key={fi.href}
+                                      href={fi.href}
+                                      onClick={() => setIsMobileMenuOpen(false)}
+                                      className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900 transition"
+                                    >
+                                      <Icon className="w-5 h-5 text-orange-500" />
+                                      <span className="text-base font-medium">{fi.label}</span>
+                                    </Link>
+                                  );
+                                })}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      className="text-2xl font-medium text-gray-900 hover:text-gray-600 cursor-pointer"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
 
                 <div className="h-px bg-gray-100 w-full" />
 
@@ -305,7 +441,7 @@ export default function Navbar({ user }: NavbarProps) {
                     </button>
 
                     <button
-                      onClick={() => router.push("/pricing")}
+                      onClick={() => router.push("/#pricing")}
                       className="w-full bg-gray-100 text-gray-900 px-6 py-3 rounded-full text-base font-medium hover:bg-gray-200 transition cursor-pointer"
                     >
                       Upgrade Plan
@@ -322,11 +458,16 @@ export default function Navbar({ user }: NavbarProps) {
 
                 ) : (
 
-                  <Link href="/login">
-                    <button className="bg-black text-white px-6 py-3 rounded-full text-base font-medium transition shadow-md w-full cursor-pointer">
-                      Login / Sign Up
-                    </button>
-                  </Link>
+                  <button
+                    onClick={handleLoginClick}
+                    disabled={navigating}
+                    className="bg-black text-white px-6 py-3 rounded-full text-base font-medium transition shadow-md w-full cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {navigating
+                      ? <><Loader2 className="w-4 h-4 animate-spin" /> Redirecting…</>
+                      : "Login / Sign Up"
+                    }
+                  </button>
 
                 )}
               </div>

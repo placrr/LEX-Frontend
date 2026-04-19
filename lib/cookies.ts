@@ -6,18 +6,20 @@ export async function setAuthCookies(
 ) {
   const cookieStore = await cookies()
 
+  const isProduction = process.env.NODE_ENV === "production"
+
   cookieStore.set("accessToken", accessToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: isProduction,
+    sameSite: "strict",
     path: "/",
     maxAge: 60 * 15, // 15 minutes
   })
 
   cookieStore.set("refreshToken", refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: isProduction,
+    sameSite: "strict",
     path: "/",
     maxAge: 60 * 60 * 24 * 7, // 7 days
   })
@@ -28,4 +30,7 @@ export async function clearAuthCookies() {
 
   cookieStore.delete("accessToken")
   cookieStore.delete("refreshToken")
+  // Both NextAuth session-token variants: __Secure- prefix on HTTPS, plain name on HTTP
+  cookieStore.delete("__Secure-next-auth.session-token")
+  cookieStore.delete("next-auth.session-token")
 }

@@ -1,8 +1,16 @@
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 import Navbar from "../navbar"
 import { verifyAccessToken } from "@/lib/tokens"
 import { prisma } from "@/lib/prisma"
 import { redis } from "@/lib/redis"
+
+// Routes where the navbar should not appear
+const NAVBAR_HIDDEN_ROUTES = [
+  "/login",
+  "/after-oauth",
+  "/complete-profile",
+  "/verify-otp",
+]
 
 type NavbarUser = {
   name: string | null
@@ -11,6 +19,13 @@ type NavbarUser = {
 }
 
 export default async function NavbarWrapper() {
+
+  const headersList = await headers()
+  const pathname = headersList.get("x-pathname") ?? ""
+
+  if (NAVBAR_HIDDEN_ROUTES.some(route => pathname.startsWith(route))) {
+    return null
+  }
 
   const cookieStore = await cookies()
 

@@ -1,56 +1,54 @@
 import { NextResponse } from "next/server"
+import { cookies } from "next/headers"
 import { prisma } from "@/lib/prisma"
 import { verifyRefreshToken } from "@/lib/tokens"
-import bcrypt from "bcrypt"
 
-export async function POST(req: Request) {
-  const refreshToken =
-    req.headers.get("cookie")
-      ?.split("; ")
-      .find(c => c.startsWith("refreshToken="))
-      ?.split("=")[1]
+const COOKIE_CLEAR: Parameters<typeof NextResponse.prototype.cookies.set>[2] = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax",
+  expires: new Date(0),
+  path: "/",
+}
+
+function buildClearResponse() {
+  const res = NextResponse.json({ success: true })
+
+  res.cookies.set("accessToken", "", COOKIE_CLEAR)
+  res.cookies.set("refreshToken", "", COOKIE_CLEAR)
+
+  // Clear both NextAuth session-token variants:
+  // __Secure- prefix is used on HTTPS (production), plain name is used on HTTP (dev)
+  res.cookies.set("__Secure-next-auth.session-token", "", {
+    ...COOKIE_CLEAR,
+    secure: true,
+  })
+  res.cookies.set("next-auth.session-token", "", {
+    ...COOKIE_CLEAR,
+    secure: false,
+  })
+
+  return res
+}
+
+export async function POST() {
+  const cookieStore = await cookies()
+  const refreshToken = cookieStore.get("refreshToken")?.value
 
   if (!refreshToken) {
-    return NextResponse.json({ success: true })
+    return buildClearResponse()
   }
 
   try {
     const payload = verifyRefreshToken(refreshToken)
 
-    const tokens = await prisma.refreshToken.findMany({
-      where: { userId: payload.userId }
+    // Direct O(1) delete — tokenId in the JWT matches the DB record id
+    await prisma.refreshToken.deleteMany({
+      where: { id: payload.tokenId }
     })
-
-    for (const tokenRecord of tokens) {
-      const match = await bcrypt.compare(
-        refreshToken,
-        tokenRecord.tokenHash
-      )
-
-      if (match) {
-        await prisma.refreshToken.delete({
-          where: { id: tokenRecord.id }
-        })
-        break
-      }
-    }
   } catch {
-    // Ignore errors
+    // Ignore — still clear cookies below
   }
 
-  const response = NextResponse.json({ success: true })
-
-  response.cookies.set("accessToken", "", {
-    httpOnly: true,
-    expires: new Date(0),
-    path: "/"
-  })
-
-  response.cookies.set("refreshToken", "", {
-    httpOnly: true,
-    expires: new Date(0),
-    path: "/"
-  })
-
-  return response
+  return buildClearResponse()
 }

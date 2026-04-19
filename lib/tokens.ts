@@ -12,9 +12,14 @@ interface RefreshTokenPayload {
   tokenId: string
 }
 
-export function generateAccessToken(userId: string) {
+export function generateAccessToken(
+  userId: string,
+  email:  string,
+  plan:   string,
+  role:   string,
+) {
   return jwt.sign(
-    { userId: userId },
+    { userId, email, plan, role },
     process.env.ACCESS_SECRET!,
     { expiresIn: "15m" }
   )
@@ -38,6 +43,9 @@ export function generateRefreshToken(
 export function verifyAccessToken(token: string) {
   return jwt.verify(token, process.env.ACCESS_SECRET!) as {
     userId: string
+    email:  string
+    plan:   string
+    role:   string
   }
 }
 export function verifyRefreshToken(token: string): RefreshTokenPayload {

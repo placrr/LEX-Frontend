@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono,Inter,Quicksand } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { Toaster } from "sonner";
 import NavbarWrapper from "@/components/layouts/NavbarWrapper";
 import "./globals.css";
 
@@ -15,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Lex App",
-  description: "Lex platform",
+  title: "Placr",
+  description: "Placr — AI career platform for KIIT students",
 };
 
 export default function RootLayout({
@@ -33,6 +34,14 @@ export default function RootLayout({
 
         {children}
 
+        <Toaster
+          position="top-center"
+          richColors
+          closeButton
+          toastOptions={{
+            style: { borderRadius: "16px", fontSize: "14px" },
+          }}
+        />
         <Analytics />
       </body>
     </html>

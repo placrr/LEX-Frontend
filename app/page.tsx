@@ -1,28 +1,25 @@
-"use client";
+import { cookies } from "next/headers"
+import Hero from "@/components/hero"
+import Features from "@/components/Features"
+import HowItWorks from "@/components/HowItWorks"
+import PricingSection from "@/components/PricingSection"
+import AboutSection from "@/components/AboutSection"
+import CTABanner from "@/components/CTABanner"
+import Footer from "@/components/Footer"
 
-import Hero from "@/components/hero";
-import Features from "@/components/Features";
-import BuildForEveryoneSection from "@/components/BuildForEveryoneSection";
-import PricingSection from "@/components/Pricing Section";
-import CTABanner from "@/components/CTABanner";
-import Footer from "@/components/Footer";
+export default async function Home() {
+  const cookieStore = await cookies()
+  const loggedIn = !!cookieStore.get("accessToken")?.value
 
-export default function Home() {
   return (
-    <main className="relative min-h-screen bg-white overflow-x-hidden">
-      <Navbar />
-
-      <div className="relative z-10">
-        <div className="absolute top-0 left-0 right-0 z-50">
-        </div>
-
-      {/* FEATURES */}
+    <main className="relative min-h-screen bg-[#F9F7F3] overflow-x-hidden">
+      <Hero loggedIn={loggedIn} />
       <Features />
-      <BuildForEveryoneSection />
+      <HowItWorks />
       <PricingSection />
+      <AboutSection />
       <CTABanner />
-
       <Footer />
     </main>
-  );
+  )
 }
