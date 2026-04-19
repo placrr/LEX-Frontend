@@ -1,8 +1,1 @@
-{
-  "permissions": {
-    "allow": [
-      "Read(//c/Users/KIIT0001/OneDrive/Dokumen/GitHub/ATS_BACKEND/**)",
-      "Bash(npm install:*)"
-    ]
-  }
-}
+
