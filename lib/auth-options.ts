@@ -15,6 +15,11 @@ providers: [
   })
 ],
 
+  pages: {
+    signIn: "/login",
+    error: "/login",
+  },
+
   session: {
     strategy: "jwt"
   },
@@ -22,15 +27,14 @@ providers: [
   secret: process.env.NEXTAUTH_SECRET!, // IMPORTANT
 
   callbacks: {
-    async signIn({ profile }) {
-      if (!profile?.email?.endsWith("@kiit.ac.in")) {
-        return false
-      }
+    async signIn({ profile, account }) {
+      if (account?.provider !== "google") return false
+      if (!profile?.email?.endsWith("@kiit.ac.in")) return false
       return true
     },
 
-async redirect() {
-  return "/after-oauth"
-}
+    async redirect({ baseUrl }) {
+      return `${baseUrl}/after-oauth`
+    }
   }
 }

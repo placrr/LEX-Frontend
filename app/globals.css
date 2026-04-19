@@ -1,6 +1,14 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+html {
+  scroll-behavior: smooth;
+}
+
+button, a, [role="button"], input[type="submit"], input[type="button"], select, summary {
+  cursor: pointer;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 :root {

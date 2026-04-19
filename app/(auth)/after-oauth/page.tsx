@@ -3,8 +3,8 @@ import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { authOptions } from "@/lib/auth-options"
 import { redis } from "@/lib/redis"
-import { sendOTPEmail } from "@/lib/email"
-import { randomUUID } from "crypto"
+import { randomUUID } from "node:crypto"
+import SendingOTP from "./SendingOTP"
 
 export default async function AfterOAuth() {
 
@@ -21,35 +21,19 @@ export default async function AfterOAuth() {
     where: { email }
   })
 
-  // EXISTING USER
+  // EXISTING USER — render client component that sends OTP with animation
   if (existingUser) {
-
-    const otp = Math.floor(100000 + Math.random() * 900000).toString()
-
-    console.log("OTP:", otp)
 
     const authSessionId = randomUUID()
 
-    // store OTP
-    await redis.set(
-      `otp:${authSessionId}`,
-      otp,
-      { ex: 300 }
-    )
-
-    // store profile for login
+    // store profile so /api/otp/start can find the email
     await redis.set(
       `profile:${authSessionId}`,
-      JSON.stringify({
-        email,
-        name
-      }),
+      JSON.stringify({ email, name }),
       { ex: 600 }
     )
 
-    sendOTPEmail(email, otp).catch(console.error)
-
-    redirect(`/verify-otp?session=${authSessionId}`)
+    return <SendingOTP authSessionId={authSessionId} />
   }
 
   // NEW USER
