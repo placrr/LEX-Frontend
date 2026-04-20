@@ -193,8 +193,14 @@ export default function Navbar({ user }: NavbarProps) {
           <div className="hidden md:flex items-center gap-3">
 
             {/* India flag */}
-            <div className="bg-white rounded-full p-2 shadow-sm flex items-center justify-center">
-              <span className="text-lg leading-none">🇮🇳</span>
+            <div className="bg-white rounded-full p-1.5 shadow-sm flex items-center justify-center overflow-hidden">
+              <svg width="22" height="22" viewBox="0 0 900 600" className="rounded-full">
+                <rect width="900" height="200" fill="#FF9933"/>
+                <rect y="200" width="900" height="200" fill="#FFFFFF"/>
+                <rect y="400" width="900" height="200" fill="#138808"/>
+                <circle cx="450" cy="300" r="60" fill="none" stroke="#000080" strokeWidth="4"/>
+                <circle cx="450" cy="300" r="8" fill="#000080"/>
+              </svg>
             </div>
 
             {/* Auth Section */}
