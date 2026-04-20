@@ -516,7 +516,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                       </div>
                       <div className="px-5 pb-5 flex flex-wrap gap-2">
                         {g.items.map((k, i) => (
-                          <span key={i} className={`inline-flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full text-sm font-semibold border shadow-sm ${g.pillBg} ${g.pillBorder} text-gray-900`}>
+                          <span key={i} className={`inline-flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full text-sm font-medium border shadow-sm ${g.pillBg} ${g.pillBorder} text-gray-900`}>
                             <span className={`w-2 h-2 rounded-full ${g.pillDot}`} />
                             {k.keyword}
                             {k.requirement === "required" && <span className="text-[8px] font-black bg-gray-900 text-white px-1.5 py-0.5 rounded ml-0.5">REQ</span>}
