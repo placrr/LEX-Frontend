@@ -429,146 +429,171 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
               const listedOnly = report.keywordMatches!.filter(k => k.matchType === "listed_only")
               const notFound = report.keywordMatches!.filter(k => k.matchType === "not_found")
               const required = report.keywordMatches!.filter(k => k.requirement === "required")
-              const preferred = report.keywordMatches!.filter(k => k.requirement === "preferred")
               const requiredMatched = required.filter(k => k.matchType === "exact" || k.matchType === "partial")
-              const preferredMatched = preferred.filter(k => k.matchType === "exact" || k.matchType === "partial")
               const coveragePct = required.length > 0 ? Math.round((requiredMatched.length / required.length) * 100) : 0
               const total = report.keywordMatches!.length
               const matchedTotal = exact.length + partial.length
               const matchPct = Math.round((matchedTotal / total) * 100)
+              const gapScore = matchPct >= 80 ? "You&apos;re a strong match" : matchPct >= 60 ? "Good foundation, some gaps" : matchPct >= 40 ? "Significant gaps to address" : "Major skill gaps found"
 
               return (
                 <>
-                  {/* ── Hero Stats ── */}
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                    <div className="grid grid-cols-3 gap-4 mb-5">
-                      <div className="text-center">
-                        <div className={`text-3xl sm:text-4xl font-black tabular-nums ${matchPct >= 75 ? "text-green-600" : matchPct >= 50 ? "text-yellow-600" : "text-red-500"}`}>{matchPct}%</div>
-                        <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mt-1">Overall Match</div>
+                  {/* ── Match Overview ── */}
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <div className="p-5 sm:p-6">
+                      {/* Big score + ring */}
+                      <div className="flex items-center gap-6 mb-6">
+                        <div className="relative w-20 h-20 sm:w-24 sm:h-24 shrink-0">
+                          <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="42" fill="none" stroke="#f3f4f6" strokeWidth="8" />
+                            <circle cx="50" cy="50" r="42" fill="none" stroke={matchPct >= 75 ? "#22c55e" : matchPct >= 50 ? "#eab308" : "#ef4444"} strokeWidth="8" strokeLinecap="round" strokeDasharray={`${matchPct * 2.64} ${264 - matchPct * 2.64}`} />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className={`text-xl sm:text-2xl font-black tabular-nums ${matchPct >= 75 ? "text-green-600" : matchPct >= 50 ? "text-yellow-600" : "text-red-500"}`}>{matchPct}%</span>
+                          </div>
+                        </div>
+                        <div>
+                          <h2 className="text-lg sm:text-xl font-bold text-gray-900">Skill Match Score</h2>
+                          <p className="text-sm text-gray-500 mt-0.5">{matchedTotal} of {total} keywords matched</p>
+                          <div className="flex items-center gap-4 mt-3">
+                            <div>
+                              <div className="text-xs text-gray-400">Required</div>
+                              <div className={`text-sm font-bold ${coveragePct >= 75 ? "text-green-600" : coveragePct >= 50 ? "text-yellow-600" : "text-red-500"}`}>{requiredMatched.length}/{required.length}</div>
+                            </div>
+                            <div className="w-px h-8 bg-gray-100" />
+                            <div>
+                              <div className="text-xs text-gray-400">Preferred</div>
+                              <div className="text-sm font-bold text-blue-600">{exact.filter(k => k.requirement === "preferred").length + partial.filter(k => k.requirement === "preferred").length}/{report.keywordMatches!.filter(k => k.requirement === "preferred").length}</div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-center border-x border-gray-100">
-                        <div className={`text-3xl sm:text-4xl font-black tabular-nums ${coveragePct >= 75 ? "text-green-600" : coveragePct >= 50 ? "text-yellow-600" : "text-red-500"}`}>{coveragePct}%</div>
-                        <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mt-1">Required Skills</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-3xl sm:text-4xl font-black tabular-nums text-gray-900">{total}</div>
-                        <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mt-1">JD Keywords</div>
+
+                      {/* Stacked bar */}
+                      <div className="flex h-3 rounded-full overflow-hidden bg-gray-100">
+                        {exact.length > 0 && <div className="bg-emerald-500" style={{ width: `${(exact.length / total) * 100}%` }} />}
+                        {partial.length > 0 && <div className="bg-sky-500" style={{ width: `${(partial.length / total) * 100}%` }} />}
+                        {listedOnly.length > 0 && <div className="bg-amber-400" style={{ width: `${(listedOnly.length / total) * 100}%` }} />}
+                        {notFound.length > 0 && <div className="bg-rose-400" style={{ width: `${(notFound.length / total) * 100}%` }} />}
                       </div>
                     </div>
 
-                    {/* Stacked bar */}
-                    <div className="flex h-4 rounded-full overflow-hidden shadow-inner bg-gray-100">
-                      {exact.length > 0 && <div className="bg-green-500" style={{ width: `${(exact.length / total) * 100}%` }} />}
-                      {partial.length > 0 && <div className="bg-blue-500" style={{ width: `${(partial.length / total) * 100}%` }} />}
-                      {listedOnly.length > 0 && <div className="bg-yellow-400" style={{ width: `${(listedOnly.length / total) * 100}%` }} />}
-                      {notFound.length > 0 && <div className="bg-red-400" style={{ width: `${(notFound.length / total) * 100}%` }} />}
-                    </div>
-                    <div className="flex items-center justify-between mt-2">
+                    {/* Legend row */}
+                    <div className="grid grid-cols-4 border-t border-gray-100">
                       {[
-                        { n: exact.length, l: "Found", c: "bg-green-500" },
-                        { n: partial.length, l: "Partial", c: "bg-blue-500" },
-                        { n: listedOnly.length, l: "Weak", c: "bg-yellow-400" },
-                        { n: notFound.length, l: "Missing", c: "bg-red-400" },
+                        { n: exact.length, l: "Matched", c: "border-emerald-500", tc: "text-emerald-600" },
+                        { n: partial.length, l: "Partial", c: "border-sky-500", tc: "text-sky-600" },
+                        { n: listedOnly.length, l: "Weak", c: "border-amber-400", tc: "text-amber-600" },
+                        { n: notFound.length, l: "Missing", c: "border-rose-400", tc: "text-rose-500" },
                       ].map(x => (
-                        <span key={x.l} className="flex items-center gap-1.5 text-[11px] text-gray-500">
-                          <span className={`w-2.5 h-2.5 rounded ${x.c}`} />
-                          <span className="font-bold text-gray-700">{x.n}</span> {x.l}
-                        </span>
+                        <div key={x.l} className={`text-center py-3 border-t-2 ${x.c}`}>
+                          <div className={`text-lg font-black tabular-nums ${x.tc}`}>{x.n}</div>
+                          <div className="text-[10px] text-gray-400 font-medium">{x.l}</div>
+                        </div>
                       ))}
                     </div>
                   </div>
 
-                  {/* ── Keyword Grid ── */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {[
-                      { items: exact, title: "Matched Skills", sub: "Found in your experience with proof", icon: CheckCircle2, accent: "green", pillClass: "bg-green-100 text-green-800 border-green-200" },
-                      { items: partial, title: "Partial Match", sub: "Similar or synonym found", icon: Search, accent: "blue", pillClass: "bg-blue-100 text-blue-800 border-blue-200" },
-                      { items: listedOnly, title: "Needs Evidence", sub: "Listed in Skills but no project proof", icon: AlertTriangle, accent: "yellow", pillClass: "bg-yellow-100 text-yellow-800 border-yellow-200" },
-                      { items: notFound, title: "Not Found", sub: "Missing from your resume entirely", icon: X, accent: "red", pillClass: "bg-red-100 text-red-700 border-red-200" },
-                    ].filter(g => g.items.length > 0).map(g => (
-                      <div key={g.title} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                        <div className={`px-4 py-3 border-b border-gray-50 bg-${g.accent}-50/30`}>
-                          <div className="flex items-center gap-2">
-                            <g.icon className={`w-4 h-4 text-${g.accent}-500`} />
-                            <div>
-                              <span className="text-sm font-bold text-gray-900">{g.title}</span>
-                              <span className="text-[10px] text-gray-400 ml-2">{g.items.length}</span>
-                            </div>
+                  {/* ── Skills Breakdown ── */}
+                  {[
+                    { items: exact, title: "Matched Skills", desc: "These keywords appear in your experience with context proof. ATS will score these highest.", icon: CheckCircle2, colors: { bg: "bg-emerald-50", border: "border-emerald-200", icon: "text-emerald-600", pill: "bg-emerald-100 text-emerald-800 border-emerald-200", dot: "bg-emerald-500" } },
+                    { items: partial, title: "Partial Matches", desc: "Found as a synonym or stem match. Good, but exact wording would score higher.", icon: Search, colors: { bg: "bg-sky-50", border: "border-sky-200", icon: "text-sky-600", pill: "bg-sky-100 text-sky-800 border-sky-200", dot: "bg-sky-500" } },
+                    { items: listedOnly, title: "Listed Without Evidence", desc: "In your Skills section but not mentioned in any project or experience. ATS counts these at 50% weight.", icon: AlertTriangle, colors: { bg: "bg-amber-50", border: "border-amber-200", icon: "text-amber-600", pill: "bg-amber-100 text-amber-800 border-amber-200", dot: "bg-amber-500" } },
+                    { items: notFound, title: "Missing Skills", desc: "Not found anywhere in your resume. Required ones are dealbreakers — add them before applying.", icon: X, colors: { bg: "bg-rose-50", border: "border-rose-200", icon: "text-rose-600", pill: "bg-rose-100 text-rose-700 border-rose-200", dot: "bg-rose-500" } },
+                  ].filter(g => g.items.length > 0).map(g => (
+                    <div key={g.title} className={`rounded-2xl border shadow-sm overflow-hidden ${g.colors.border} ${g.colors.bg}`}>
+                      <div className="px-5 py-4">
+                        <div className="flex items-start gap-3">
+                          <div className={`w-9 h-9 rounded-xl ${g.colors.bg} border ${g.colors.border} flex items-center justify-center shrink-0`}>
+                            <g.icon className={`w-4.5 h-4.5 ${g.colors.icon}`} />
                           </div>
-                          <p className="text-[10px] text-gray-500 mt-0.5">{g.sub}</p>
-                        </div>
-                        <div className="p-3 flex flex-wrap gap-1.5">
-                          {g.items.map((k, i) => (
-                            <span key={i} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${g.pillClass}`}>
-                              {k.keyword}
-                              {k.requirement === "required" && <span className="text-[7px] font-black bg-gray-900 text-white px-1 rounded">R</span>}
-                              {k.matchType === "not_found" && (
-                                <a href={`https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free+course`} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-2.5 h-2.5 opacity-50 hover:opacity-100" /></a>
-                              )}
-                            </span>
-                          ))}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-sm font-bold text-gray-900">{g.title}</h3>
+                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${g.colors.pill}`}>{g.items.length}</span>
+                            </div>
+                            <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">{g.desc}</p>
+                          </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                      <div className="px-5 pb-4 flex flex-wrap gap-2">
+                        {g.items.map((k, i) => (
+                          <span key={i} className={`inline-flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full text-[12px] font-semibold border bg-white/80 ${g.colors.border} text-gray-800`}>
+                            <span className={`w-2 h-2 rounded-full ${g.colors.dot}`} />
+                            {k.keyword}
+                            {k.requirement === "required" && <span className="text-[8px] font-black bg-gray-800 text-white px-1 py-px rounded ml-0.5">REQ</span>}
+                            {k.matchType === "not_found" && (
+                              <a href={`https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free+course`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 ml-0.5"><ExternalLink className="w-3 h-3" /></a>
+                            )}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
 
                   {/* ── Action Plan ── */}
                   {(notFound.length > 0 || listedOnly.length > 0) && (
-                    <div className="bg-gray-900 rounded-2xl p-5 sm:p-6 text-white">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center"><Zap className="w-4 h-4 text-yellow-400" /></div>
-                        <div>
-                          <h2 className="text-sm font-bold">Action Plan</h2>
-                          <p className="text-[10px] text-gray-500">Do these to improve your score</p>
+                    <div className="bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 rounded-2xl overflow-hidden">
+                      <div className="p-5 sm:p-6 text-white">
+                        <div className="flex items-center gap-3 mb-5">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg shadow-yellow-500/20"><Zap className="w-5 h-5 text-white" /></div>
+                          <div>
+                            <h2 className="text-base font-bold">Your Action Plan</h2>
+                            <p className="text-[11px] text-gray-400">Follow these steps to close the gap</p>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="space-y-3">
-                        {notFound.filter(k => k.requirement === "required").length > 0 && (
-                          <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-red-500 text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">1</span>
-                            <div>
-                              <p className="text-[13px] font-semibold mb-1.5">Add missing required skills</p>
-                              <div className="flex flex-wrap gap-1.5 mb-2">
+                        <div className="space-y-4">
+                          {notFound.filter(k => k.requirement === "required").length > 0 && (
+                            <div className="bg-white/[0.06] backdrop-blur-sm rounded-xl p-4 border border-white/[0.08]">
+                              <div className="flex items-center gap-2 mb-3">
+                                <span className="w-7 h-7 rounded-lg bg-red-500 text-white text-xs font-black flex items-center justify-center">1</span>
+                                <span className="text-sm font-bold">Add Required Missing Skills</span>
+                                <span className="text-[9px] font-bold bg-red-500/20 text-red-300 px-2 py-0.5 rounded-full ml-auto">CRITICAL</span>
+                              </div>
+                              <div className="flex flex-wrap gap-2 mb-3">
                                 {notFound.filter(k => k.requirement === "required").map((k, i) => (
-                                  <a key={i} href={`https://www.youtube.com/results?search_query=${encodeURIComponent(k.keyword)}+tutorial`} target="_blank" rel="noopener noreferrer" className="px-2 py-0.5 bg-red-500/20 text-red-200 text-[11px] font-medium rounded border border-red-500/25 hover:bg-red-500/30 transition">
-                                    {k.keyword} <ExternalLink className="w-2 h-2 inline" />
+                                  <a key={i} href={`https://www.youtube.com/results?search_query=${encodeURIComponent(k.keyword)}+tutorial+for+beginners`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-500/15 hover:bg-red-500/25 text-red-200 text-xs font-semibold rounded-lg border border-red-500/20 transition">
+                                    <BookOpen className="w-3 h-3" /> {k.keyword}
                                   </a>
                                 ))}
                               </div>
-                              <p className="text-[11px] text-gray-500">Without these, most ATS systems will auto-reject.</p>
+                              <p className="text-[11px] text-gray-500 leading-relaxed">Without these, most ATS systems will auto-reject your application before a human sees it.</p>
                             </div>
-                          </div>
-                        )}
+                          )}
 
-                        {listedOnly.length > 0 && (
-                          <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-yellow-500 text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">2</span>
-                            <div>
-                              <p className="text-[13px] font-semibold mb-1.5">Back up weak skills with proof</p>
-                              <div className="flex flex-wrap gap-1.5 mb-2">
+                          {listedOnly.length > 0 && (
+                            <div className="bg-white/[0.06] backdrop-blur-sm rounded-xl p-4 border border-white/[0.08]">
+                              <div className="flex items-center gap-2 mb-3">
+                                <span className="w-7 h-7 rounded-lg bg-amber-500 text-white text-xs font-black flex items-center justify-center">2</span>
+                                <span className="text-sm font-bold">Strengthen Weak Skills</span>
+                              </div>
+                              <div className="flex flex-wrap gap-2 mb-3">
                                 {listedOnly.map((k, i) => (
-                                  <span key={i} className="px-2 py-0.5 bg-yellow-500/15 text-yellow-200 text-[11px] font-medium rounded border border-yellow-500/20">{k.keyword}</span>
+                                  <span key={i} className="px-3 py-1.5 bg-amber-500/15 text-amber-200 text-xs font-semibold rounded-lg border border-amber-500/20">{k.keyword}</span>
                                 ))}
                               </div>
-                              <p className="text-[11px] text-gray-500">Add to experience: &quot;Built X using {listedOnly[0]?.keyword}&quot;</p>
+                              <p className="text-[11px] text-gray-500 leading-relaxed">Add these to your experience bullets. Example: &quot;Built scalable API using <span className="text-amber-300 font-medium">{listedOnly[0]?.keyword}</span>&quot;</p>
                             </div>
-                          </div>
-                        )}
+                          )}
 
-                        {notFound.filter(k => k.requirement === "preferred").length > 0 && (
-                          <div className="flex gap-3">
-                            <span className="w-6 h-6 rounded-full bg-gray-600 text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">3</span>
-                            <div>
-                              <p className="text-[13px] font-semibold mb-1.5">Consider nice-to-haves</p>
-                              <div className="flex flex-wrap gap-1.5">
+                          {notFound.filter(k => k.requirement === "preferred").length > 0 && (
+                            <div className="bg-white/[0.04] rounded-xl p-4 border border-white/[0.06]">
+                              <div className="flex items-center gap-2 mb-3">
+                                <span className="w-7 h-7 rounded-lg bg-gray-600 text-white text-xs font-black flex items-center justify-center">3</span>
+                                <span className="text-sm font-bold">Nice-to-Have Skills</span>
+                                <span className="text-[9px] font-bold bg-white/10 text-gray-400 px-2 py-0.5 rounded-full ml-auto">OPTIONAL</span>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
                                 {notFound.filter(k => k.requirement === "preferred").map((k, i) => (
-                                  <span key={i} className="px-2 py-0.5 bg-white/5 text-gray-400 text-[11px] font-medium rounded border border-white/10">{k.keyword}</span>
+                                  <a key={i} href={`https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free`} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-gray-400 text-xs font-medium rounded-lg border border-white/10 transition">
+                                    {k.keyword} <ExternalLink className="w-2.5 h-2.5 inline ml-0.5" />
+                                  </a>
                                 ))}
                               </div>
                             </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
