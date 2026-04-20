@@ -607,8 +607,8 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
         </div>{/* end left: tab content */}
 
         {/* Right: Chat sidebar — visible on lg+, floating on mobile */}
-        <div className="hidden lg:flex w-56 shrink-0">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col sticky top-24 w-full" style={{ height: "350px" }}>
+        <div className={`hidden lg:flex shrink-0 transition-all duration-300 ${msgs.length > 0 ? "w-80" : "w-56"}`}>
+          <div className={`bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col sticky top-24 w-full transition-all duration-300`} style={{ height: msgs.length > 0 ? "min(500px, calc(100vh - 8rem))" : "300px" }}>
             <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
               <div className="w-7 h-7 rounded-lg bg-purple-500 flex items-center justify-center">
                 <MessageCircle className="w-3.5 h-3.5 text-white" />
