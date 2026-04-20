@@ -641,9 +641,9 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
               <div ref={chatEndRef} />
             </div>
 
-            <div className="flex gap-2 p-3 border-t border-gray-100">
-              <input value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()} placeholder="Type a question..." maxLength={2000} className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 transition" />
-              <Button size="icon" onClick={handleSend} disabled={sending || !chatInput.trim()} className="bg-gray-900 hover:bg-gray-800 text-white rounded-xl disabled:opacity-40 h-10 w-10"><Send className="w-4 h-4" /></Button>
+            <div className="flex gap-1.5 p-2 border-t border-gray-100">
+              <input value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()} placeholder="Ask..." maxLength={2000} className="flex-1 min-w-0 border border-gray-200 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-purple-300 transition" />
+              <Button size="icon" onClick={handleSend} disabled={sending || !chatInput.trim()} className="bg-gray-900 hover:bg-gray-800 text-white rounded-lg disabled:opacity-40 h-8 w-8 shrink-0"><Send className="w-3 h-3" /></Button>
             </div>
           </div>
         </div>
