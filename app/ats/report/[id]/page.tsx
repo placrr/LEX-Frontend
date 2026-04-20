@@ -120,6 +120,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
   const [report, setReport] = useState<FullReport | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [activeTab, setActiveTab] = useState<"score" | "gaps" | "chat">("score")
 
   // Chat
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -276,18 +277,37 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        {/* ── Tabs ── */}
+        <div className="flex gap-1 bg-white rounded-2xl shadow-sm border border-gray-100 p-1.5 mb-6">
+          {([
+            { key: "score", label: "Score", icon: TrendingUp },
+            { key: "gaps", label: "Skill Gap", icon: Target },
+            { key: "chat", label: "Chat", icon: Send },
+          ] as const).map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                activeTab === tab.key
+                  ? "bg-gray-900 text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-          {/* ── Left Column ── */}
-          <div className="md:col-span-2 lg:col-span-2 space-y-6">
-
+        {/* ── Tab: Score ── */}
+        {activeTab === "score" && (
+          <div className="space-y-6">
             {/* Dimensions */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Score Breakdown</h2>
               <div className="space-y-4">
                 {dimensions.map((d) => dimensionBar(d.label, d.value))}
               </div>
-
               {report.scoreBreakdown && (
                 <div className="mt-6 pt-4 border-t border-gray-100 grid grid-cols-3 gap-2 sm:gap-4 text-center text-xs sm:text-sm">
                   <div>
@@ -310,9 +330,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
             {report.strengths?.length > 0 && (
               <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl shadow-sm border border-green-200 p-6">
                 <h2 className="flex items-center gap-2 text-lg font-bold text-green-900 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
-                    <TrendingUp className="w-4 h-4 text-white" />
-                  </div>
+                  <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center"><TrendingUp className="w-4 h-4 text-white" /></div>
                   What&apos;s Working
                 </h2>
                 <ul className="space-y-3">
@@ -330,9 +348,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
             {report.improvements?.length > 0 && (
               <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl shadow-sm border border-red-200 p-6">
                 <h2 className="flex items-center gap-2 text-lg font-bold text-red-900 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center">
-                    <AlertTriangle className="w-4 h-4 text-white" />
-                  </div>
+                  <div className="w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center"><AlertTriangle className="w-4 h-4 text-white" /></div>
                   Critical Gaps
                 </h2>
                 <ul className="space-y-3">
@@ -350,17 +366,13 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
             {report.recommendations?.length > 0 && (
               <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl shadow-sm border border-purple-200 p-6">
                 <h2 className="flex items-center gap-2 text-lg font-bold text-purple-900 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center">
-                    <Lightbulb className="w-4 h-4 text-white" />
-                  </div>
+                  <div className="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center"><Lightbulb className="w-4 h-4 text-white" /></div>
                   Exact Fixes to Make
                 </h2>
                 <ul className="space-y-3">
                   {report.recommendations.map((s, i) => (
                     <li key={i} className="flex items-start gap-3 bg-white/70 rounded-xl px-4 py-3 border border-purple-100">
-                      <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
-                        {i + 1}
-                      </span>
+                      <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
                       <span className="text-sm text-gray-800 leading-relaxed">{s}</span>
                     </li>
                   ))}
@@ -368,154 +380,10 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
               </div>
             )}
 
-            {/* ── Skill Gap Analyzer ── */}
-            {report.keywordMatches && report.keywordMatches.length > 0 && (() => {
-              const exact = report.keywordMatches!.filter(k => k.matchType === "exact")
-              const partial = report.keywordMatches!.filter(k => k.matchType === "partial")
-              const listedOnly = report.keywordMatches!.filter(k => k.matchType === "listed_only")
-              const notFound = report.keywordMatches!.filter(k => k.matchType === "not_found")
-
-              const required = report.keywordMatches!.filter(k => k.requirement === "required")
-              const requiredMatched = required.filter(k => k.matchType === "exact" || k.matchType === "partial")
-              const coveragePct = required.length > 0 ? Math.round((requiredMatched.length / required.length) * 100) : 0
-
-              return (
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-sm border border-blue-200 p-6">
-                  <h2 className="flex items-center gap-2 text-lg font-bold text-blue-900 mb-4">
-                    <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
-                      <Target className="w-4 h-4 text-white" />
-                    </div>
-                    Skill Gap Analysis
-                  </h2>
-
-                  {/* Coverage bar */}
-                  <div className="bg-white/70 rounded-xl p-4 border border-blue-100 mb-5">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">Required Skills Coverage</span>
-                      <span className={`text-sm font-bold ${coveragePct >= 80 ? "text-green-600" : coveragePct >= 50 ? "text-yellow-600" : "text-red-500"}`}>
-                        {requiredMatched.length}/{required.length} matched ({coveragePct}%)
-                      </span>
-                    </div>
-                    <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${coveragePct >= 80 ? "bg-green-500" : coveragePct >= 50 ? "bg-yellow-500" : "bg-red-500"}`}
-                        style={{ width: `${coveragePct}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Matched skills — exact */}
-                  {exact.length > 0 && (
-                    <div className="mb-4">
-                      <p className="text-xs font-semibold text-green-700 mb-2 flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Strong Match ({exact.length})
-                      </p>
-                      <div className="space-y-1.5">
-                        {exact.map((k, i) => (
-                          <div key={i} className="flex items-start gap-2 bg-white/70 rounded-lg px-3 py-2 border border-green-100">
-                            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full shrink-0">{k.keyword}</span>
-                            {k.evidence && <span className="text-[11px] text-gray-500 italic leading-relaxed">&quot;{k.evidence}&quot;</span>}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Partial matches */}
-                  {partial.length > 0 && (
-                    <div className="mb-4">
-                      <p className="text-xs font-semibold text-blue-700 mb-2 flex items-center gap-1">
-                        <Search className="w-3.5 h-3.5" /> Partial Match ({partial.length})
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {partial.map((k, i) => (
-                          <span key={i} className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-200">
-                            {k.keyword}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Listed only — weak */}
-                  {listedOnly.length > 0 && (
-                    <div className="mb-4">
-                      <p className="text-xs font-semibold text-yellow-700 mb-2 flex items-center gap-1">
-                        <AlertTriangle className="w-3.5 h-3.5" /> Listed But Not Demonstrated ({listedOnly.length})
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {listedOnly.map((k, i) => (
-                          <span key={i} className="px-2.5 py-1 bg-yellow-50 text-yellow-700 text-xs font-medium rounded-full border border-yellow-200">
-                            {k.keyword}
-                          </span>
-                        ))}
-                      </div>
-                      <p className="text-[11px] text-yellow-600 mt-2">
-                        These skills are in your Skills section but not backed by project/experience proof. Add them to your experience bullets.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Missing — critical gaps */}
-                  {notFound.length > 0 && (
-                    <div className="mb-4">
-                      <p className="text-xs font-semibold text-red-700 mb-2 flex items-center gap-1">
-                        <TrendingDown className="w-3.5 h-3.5" /> Missing from Resume ({notFound.length})
-                      </p>
-                      <div className="space-y-1.5">
-                        {notFound.map((k, i) => (
-                          <div key={i} className="flex items-center justify-between bg-white/70 rounded-lg px-3 py-2 border border-red-100">
-                            <div className="flex items-center gap-2">
-                              <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">{k.keyword}</span>
-                              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${k.requirement === "required" ? "bg-red-50 text-red-500" : "bg-gray-100 text-gray-500"}`}>
-                                {k.requirement}
-                              </span>
-                            </div>
-                            <a
-                              href={`https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free+course`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-1 text-[11px] font-medium text-blue-600 hover:text-blue-800 transition shrink-0"
-                            >
-                              <BookOpen className="w-3 h-3" /> Learn
-                              <ExternalLink className="w-2.5 h-2.5" />
-                            </a>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Summary */}
-                  <div className="bg-white/60 rounded-xl p-3 border border-blue-100 mt-4">
-                    <div className="grid grid-cols-4 gap-2 text-center">
-                      <div>
-                        <div className="text-lg font-bold text-green-600">{exact.length}</div>
-                        <div className="text-[10px] text-gray-500">Exact</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-bold text-blue-600">{partial.length}</div>
-                        <div className="text-[10px] text-gray-500">Partial</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-bold text-yellow-600">{listedOnly.length}</div>
-                        <div className="text-[10px] text-gray-500">Weak</div>
-                      </div>
-                      <div>
-                        <div className="text-lg font-bold text-red-500">{notFound.length}</div>
-                        <div className="text-[10px] text-gray-500">Missing</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )
-            })()}
-
             {/* Penalties & Bonuses */}
             {(report.penalties?.length || report.bonuses?.length) ? (
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-3">Scoring Adjustments</h2>
-
                 {report.penalties && report.penalties.length > 0 && (
                   <div className="mb-4">
                     <p className="text-xs font-medium text-red-500 mb-2">Penalties</p>
@@ -529,7 +397,6 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                     </div>
                   </div>
                 )}
-
                 {report.bonuses && report.bonuses.length > 0 && (
                   <div>
                     <p className="text-xs font-medium text-green-600 mb-2">Bonuses</p>
@@ -546,98 +413,200 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
               </div>
             ) : null}
           </div>
+        )}
 
-          {/* ── Right Column: Chat ── */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 lg:sticky lg:top-24 flex flex-col max-h-[500px] lg:max-h-[calc(100vh-8rem)]">
-              <h2 className="text-base font-semibold text-gray-900 mb-3 px-2">Ask about this report</h2>
+        {/* ── Tab: Skill Gap ── */}
+        {activeTab === "gaps" && (
+          <div className="space-y-6">
+            {report.keywordMatches && report.keywordMatches.length > 0 ? (() => {
+              const exact = report.keywordMatches!.filter(k => k.matchType === "exact")
+              const partial = report.keywordMatches!.filter(k => k.matchType === "partial")
+              const listedOnly = report.keywordMatches!.filter(k => k.matchType === "listed_only")
+              const notFound = report.keywordMatches!.filter(k => k.matchType === "not_found")
+              const required = report.keywordMatches!.filter(k => k.requirement === "required")
+              const requiredMatched = required.filter(k => k.matchType === "exact" || k.matchType === "partial")
+              const coveragePct = required.length > 0 ? Math.round((requiredMatched.length / required.length) * 100) : 0
 
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto space-y-3 mb-3 px-1">
-                {messages.length === 0 && (
-                  <p className="text-xs text-gray-400 text-center py-6">
-                    Ask anything about your ATS report — keyword gaps, how to improve, what recruiters look for...
-                  </p>
-                )}
+              return (
+                <>
+                  {/* Coverage bar */}
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900 mb-4">
+                      <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center"><Target className="w-4 h-4 text-white" /></div>
+                      Skills Coverage
+                    </h2>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700">Required Skills</span>
+                      <span className={`text-sm font-bold ${coveragePct >= 80 ? "text-green-600" : coveragePct >= 50 ? "text-yellow-600" : "text-red-500"}`}>
+                        {requiredMatched.length}/{required.length} ({coveragePct}%)
+                      </span>
+                    </div>
+                    <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full transition-all duration-500 ${coveragePct >= 80 ? "bg-green-500" : coveragePct >= 50 ? "bg-yellow-500" : "bg-red-500"}`} style={{ width: `${coveragePct}%` }} />
+                    </div>
+                    {/* Summary */}
+                    <div className="grid grid-cols-4 gap-2 text-center mt-4 pt-4 border-t border-gray-100">
+                      <div><div className="text-lg font-bold text-green-600">{exact.length}</div><div className="text-[10px] text-gray-500">Exact</div></div>
+                      <div><div className="text-lg font-bold text-blue-600">{partial.length}</div><div className="text-[10px] text-gray-500">Partial</div></div>
+                      <div><div className="text-lg font-bold text-yellow-600">{listedOnly.length}</div><div className="text-[10px] text-gray-500">Weak</div></div>
+                      <div><div className="text-lg font-bold text-red-500">{notFound.length}</div><div className="text-[10px] text-gray-500">Missing</div></div>
+                    </div>
+                  </div>
 
-                {messages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`text-sm px-3 py-2.5 rounded-xl max-w-[95%] ${
-                      msg.role === "USER"
-                        ? "bg-gray-900 text-white ml-auto"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {msg.role === "USER" ? (
-                      msg.message
-                    ) : (
-                      <div className="space-y-2 leading-relaxed [&_strong]:font-semibold">
-                        {msg.message.split(/\n{2,}/).map((block, i) => {
-                          const trimmed = block.trim()
-                          if (!trimmed) return null
-
-                          // Numbered list item: "1. Text" or "1) Text"
-                          const listMatch = trimmed.match(/^(\d+)[.)]\s+(.+)/)
-                          if (listMatch) {
-                            return (
-                              <div key={i} className="flex gap-2">
-                                <span className="text-gray-400 shrink-0 font-medium">{listMatch[1]}.</span>
-                                <span dangerouslySetInnerHTML={{ __html: formatInline(listMatch[2]) }} />
-                              </div>
-                            )
-                          }
-
-                          // Bullet: "- Text" or "• Text"
-                          const bulletMatch = trimmed.match(/^[-•]\s+(.+)/)
-                          if (bulletMatch) {
-                            return (
-                              <div key={i} className="flex gap-2">
-                                <span className="text-gray-400 shrink-0">•</span>
-                                <span dangerouslySetInnerHTML={{ __html: formatInline(bulletMatch[1]) }} />
-                              </div>
-                            )
-                          }
-
-                          // Regular paragraph
-                          return <p key={i} dangerouslySetInnerHTML={{ __html: formatInline(trimmed.replace(/\n/g, "<br/>")) }} />
-                        })}
+                  {/* Strong matches */}
+                  {exact.length > 0 && (
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl shadow-sm border border-green-200 p-6">
+                      <h2 className="flex items-center gap-2 text-base font-bold text-green-900 mb-3">
+                        <CheckCircle2 className="w-5 h-5 text-green-600" /> Strong Match ({exact.length})
+                      </h2>
+                      <div className="space-y-2">
+                        {exact.map((k, i) => (
+                          <div key={i} className="flex items-start gap-2 bg-white/70 rounded-xl px-4 py-3 border border-green-100">
+                            <span className="px-2.5 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full shrink-0">{k.keyword}</span>
+                            {k.evidence && <span className="text-xs text-gray-500 italic leading-relaxed">&quot;{k.evidence}&quot;</span>}
+                          </div>
+                        ))}
                       </div>
-                    )}
-                  </div>
-                ))}
+                    </div>
+                  )}
 
-                {sending && (
-                  <div className="bg-gray-100 text-gray-400 text-sm px-3 py-2 rounded-xl w-fit">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin inline mr-1" /> Thinking...
-                  </div>
-                )}
+                  {/* Partial */}
+                  {partial.length > 0 && (
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-sm border border-blue-200 p-6">
+                      <h2 className="flex items-center gap-2 text-base font-bold text-blue-900 mb-3">
+                        <Search className="w-5 h-5 text-blue-600" /> Partial Match ({partial.length})
+                      </h2>
+                      <div className="flex flex-wrap gap-2">
+                        {partial.map((k, i) => (
+                          <span key={i} className="px-3 py-1.5 bg-white/70 text-blue-700 text-xs font-medium rounded-full border border-blue-200">{k.keyword}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-                <div ref={chatEndRef} />
+                  {/* Weak — listed only */}
+                  {listedOnly.length > 0 && (
+                    <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-2xl shadow-sm border border-yellow-200 p-6">
+                      <h2 className="flex items-center gap-2 text-base font-bold text-yellow-900 mb-3">
+                        <AlertTriangle className="w-5 h-5 text-yellow-600" /> Listed But Not Proven ({listedOnly.length})
+                      </h2>
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {listedOnly.map((k, i) => (
+                          <span key={i} className="px-3 py-1.5 bg-white/70 text-yellow-700 text-xs font-medium rounded-full border border-yellow-200">{k.keyword}</span>
+                        ))}
+                      </div>
+                      <p className="text-xs text-yellow-700 bg-white/50 rounded-lg px-3 py-2">
+                        These skills are in your Skills section but not backed by project or experience proof. Add them to your work experience bullets to strengthen your score.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Missing — red */}
+                  {notFound.length > 0 && (
+                    <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl shadow-sm border border-red-200 p-6">
+                      <h2 className="flex items-center gap-2 text-base font-bold text-red-900 mb-3">
+                        <TrendingDown className="w-5 h-5 text-red-500" /> Missing from Resume ({notFound.length})
+                      </h2>
+                      <div className="space-y-2">
+                        {notFound.map((k, i) => (
+                          <div key={i} className="flex items-center justify-between bg-white/70 rounded-xl px-4 py-3 border border-red-100">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="px-2.5 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">{k.keyword}</span>
+                              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${k.requirement === "required" ? "bg-red-50 text-red-500" : "bg-gray-100 text-gray-500"}`}>
+                                {k.requirement}
+                              </span>
+                            </div>
+                            <a
+                              href={`https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free+course`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800 transition shrink-0 ml-2"
+                            >
+                              <BookOpen className="w-3.5 h-3.5" /> Learn <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )
+            })() : (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
+                <Target className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+                <p className="text-sm text-gray-400">No keyword match data available for this report.</p>
               </div>
+            )}
+          </div>
+        )}
 
-              {/* Input */}
-              <div className="flex gap-2">
-                <input
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-                  placeholder="Type a question..."
-                  maxLength={2000}
-                  className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 transition"
-                />
-                <Button
-                  size="icon"
-                  onClick={handleSend}
-                  disabled={sending || !chatInput.trim()}
-                  className="bg-gray-900 hover:bg-gray-800 text-white rounded-xl disabled:opacity-40"
+        {/* ── Tab: Chat ── */}
+        {activeTab === "chat" && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 flex flex-col" style={{ minHeight: "500px", maxHeight: "calc(100vh - 300px)" }}>
+            <h2 className="text-base font-semibold text-gray-900 mb-4">Ask about this report</h2>
+
+            <div className="flex-1 overflow-y-auto space-y-3 mb-4">
+              {messages.length === 0 && (
+                <div className="text-center py-12">
+                  <Send className="w-8 h-8 text-gray-200 mx-auto mb-3" />
+                  <p className="text-sm text-gray-400 mb-1">No messages yet</p>
+                  <p className="text-xs text-gray-300">Ask about keyword gaps, how to improve, what recruiters look for...</p>
+                </div>
+              )}
+
+              {messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`text-sm px-4 py-3 rounded-2xl max-w-[85%] ${
+                    msg.role === "USER"
+                      ? "bg-gray-900 text-white ml-auto"
+                      : "bg-gray-100 text-gray-800"
+                  }`}
                 >
-                  <Send className="w-4 h-4" />
-                </Button>
-              </div>
+                  {msg.role === "USER" ? msg.message : (
+                    <div className="space-y-2 leading-relaxed [&_strong]:font-semibold">
+                      {msg.message.split(/\n{2,}/).map((block, i) => {
+                        const trimmed = block.trim()
+                        if (!trimmed) return null
+                        const listMatch = trimmed.match(/^(\d+)[.)]\s+(.+)/)
+                        if (listMatch) return <div key={i} className="flex gap-2"><span className="text-gray-400 shrink-0 font-medium">{listMatch[1]}.</span><span dangerouslySetInnerHTML={{ __html: formatInline(listMatch[2]) }} /></div>
+                        const bulletMatch = trimmed.match(/^[-•]\s+(.+)/)
+                        if (bulletMatch) return <div key={i} className="flex gap-2"><span className="text-gray-400 shrink-0">•</span><span dangerouslySetInnerHTML={{ __html: formatInline(bulletMatch[1]) }} /></div>
+                        return <p key={i} dangerouslySetInnerHTML={{ __html: formatInline(trimmed.replace(/\n/g, "<br/>")) }} />
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {sending && (
+                <div className="bg-gray-100 text-gray-400 text-sm px-4 py-3 rounded-2xl w-fit">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin inline mr-1" /> Thinking...
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            <div className="flex gap-2">
+              <input
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+                placeholder="Type a question..."
+                maxLength={2000}
+                className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 transition"
+              />
+              <Button
+                size="icon"
+                onClick={handleSend}
+                disabled={sending || !chatInput.trim()}
+                className="bg-gray-900 hover:bg-gray-800 text-white rounded-xl disabled:opacity-40 h-11 w-11"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )
