@@ -424,204 +424,171 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
               const listedOnly = report.keywordMatches!.filter(k => k.matchType === "listed_only")
               const notFound = report.keywordMatches!.filter(k => k.matchType === "not_found")
               const required = report.keywordMatches!.filter(k => k.requirement === "required")
+              const preferred = report.keywordMatches!.filter(k => k.requirement === "preferred")
               const requiredMatched = required.filter(k => k.matchType === "exact" || k.matchType === "partial")
+              const preferredMatched = preferred.filter(k => k.matchType === "exact" || k.matchType === "partial")
               const coveragePct = required.length > 0 ? Math.round((requiredMatched.length / required.length) * 100) : 0
+              const totalMatched = exact.length + partial.length
+              const total = report.keywordMatches!.length
 
               return (
                 <>
-                  {/* Coverage bar */}
+                  {/* ── Overview Cards ── */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="bg-white rounded-2xl border border-gray-100 p-4 text-center">
+                      <div className="text-2xl font-bold text-gray-900">{total}</div>
+                      <div className="text-[11px] text-gray-500 mt-0.5">JD Keywords</div>
+                    </div>
+                    <div className="bg-white rounded-2xl border border-green-100 p-4 text-center">
+                      <div className="text-2xl font-bold text-green-600">{totalMatched}</div>
+                      <div className="text-[11px] text-gray-500 mt-0.5">Matched</div>
+                    </div>
+                    <div className="bg-white rounded-2xl border border-yellow-100 p-4 text-center">
+                      <div className="text-2xl font-bold text-yellow-600">{listedOnly.length}</div>
+                      <div className="text-[11px] text-gray-500 mt-0.5">Need Proof</div>
+                    </div>
+                    <div className="bg-white rounded-2xl border border-red-100 p-4 text-center">
+                      <div className="text-2xl font-bold text-red-500">{notFound.length}</div>
+                      <div className="text-[11px] text-gray-500 mt-0.5">Missing</div>
+                    </div>
+                  </div>
+
+                  {/* ── Coverage Bars ── */}
                   <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900 mb-4">
-                      <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center"><Target className="w-4 h-4 text-white" /></div>
-                      Skills Coverage
-                    </h2>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">Required Skills</span>
-                      <span className={`text-sm font-bold ${coveragePct >= 80 ? "text-green-600" : coveragePct >= 50 ? "text-yellow-600" : "text-red-500"}`}>
-                        {requiredMatched.length}/{required.length} ({coveragePct}%)
-                      </span>
-                    </div>
-                    <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full transition-all duration-500 ${coveragePct >= 80 ? "bg-green-500" : coveragePct >= 50 ? "bg-yellow-500" : "bg-red-500"}`} style={{ width: `${coveragePct}%` }} />
-                    </div>
-                    {/* Summary */}
-                    <div className="grid grid-cols-4 gap-2 text-center mt-4 pt-4 border-t border-gray-100">
-                      <div><div className="text-lg font-bold text-green-600">{exact.length}</div><div className="text-[10px] text-gray-500">Exact</div></div>
-                      <div><div className="text-lg font-bold text-blue-600">{partial.length}</div><div className="text-[10px] text-gray-500">Partial</div></div>
-                      <div><div className="text-lg font-bold text-yellow-600">{listedOnly.length}</div><div className="text-[10px] text-gray-500">Weak</div></div>
-                      <div><div className="text-lg font-bold text-red-500">{notFound.length}</div><div className="text-[10px] text-gray-500">Missing</div></div>
+                    <h2 className="text-base font-bold text-gray-900 mb-4">Coverage Breakdown</h2>
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-sm text-gray-700">Required Skills</span>
+                          <span className="text-xs font-bold text-gray-900">{requiredMatched.length}/{required.length}</span>
+                        </div>
+                        <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full ${coveragePct >= 80 ? "bg-green-500" : coveragePct >= 50 ? "bg-yellow-500" : "bg-red-500"}`} style={{ width: `${coveragePct}%` }} />
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-sm text-gray-700">Preferred Skills</span>
+                          <span className="text-xs font-bold text-gray-900">{preferredMatched.length}/{preferred.length}</span>
+                        </div>
+                        <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full bg-blue-500" style={{ width: `${preferred.length > 0 ? Math.round((preferredMatched.length / preferred.length) * 100) : 0}%` }} />
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Strong matches */}
-                  {exact.length > 0 && (
-                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl shadow-sm border border-green-200 p-6">
-                      <h2 className="flex items-center gap-2 text-base font-bold text-green-900 mb-3">
-                        <CheckCircle2 className="w-5 h-5 text-green-600" /> Strong Match ({exact.length})
-                      </h2>
-                      <div className="space-y-2">
-                        {exact.map((k, i) => (
-                          <div key={i} className="flex items-start gap-2 bg-white/70 rounded-xl px-4 py-3 border border-green-100">
-                            <span className="px-2.5 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full shrink-0">{k.keyword}</span>
-                            {k.evidence && <span className="text-xs text-gray-500 italic leading-relaxed">&quot;{k.evidence}&quot;</span>}
-                          </div>
-                        ))}
-                      </div>
+                  {/* ── Full Keyword Table ── */}
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h2 className="text-base font-bold text-gray-900 mb-4">All Keywords from Job Description</h2>
+                    <div className="space-y-2">
+                      {report.keywordMatches!.map((k, i) => (
+                        <div key={i} className={`flex items-center gap-3 rounded-xl px-4 py-3 border ${
+                          k.matchType === "exact" ? "bg-green-50/50 border-green-100" :
+                          k.matchType === "partial" ? "bg-blue-50/50 border-blue-100" :
+                          k.matchType === "listed_only" ? "bg-yellow-50/50 border-yellow-100" :
+                          "bg-red-50/50 border-red-100"
+                        }`}>
+                          <div className={`w-2 h-2 rounded-full shrink-0 ${
+                            k.matchType === "exact" ? "bg-green-500" :
+                            k.matchType === "partial" ? "bg-blue-500" :
+                            k.matchType === "listed_only" ? "bg-yellow-500" :
+                            "bg-red-500"
+                          }`} />
+                          <span className="text-sm font-medium text-gray-900 flex-1">{k.keyword}</span>
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                            k.requirement === "required" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-500"
+                          }`}>{k.requirement}</span>
+                          <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                            k.matchType === "exact" ? "bg-green-100 text-green-700" :
+                            k.matchType === "partial" ? "bg-blue-100 text-blue-700" :
+                            k.matchType === "listed_only" ? "bg-yellow-100 text-yellow-700" :
+                            "bg-red-100 text-red-700"
+                          }`}>{k.matchType === "listed_only" ? "weak" : k.matchType === "not_found" ? "missing" : k.matchType}</span>
+                        </div>
+                      ))}
                     </div>
-                  )}
+                  </div>
 
-                  {/* Partial */}
-                  {partial.length > 0 && (
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-sm border border-blue-200 p-6">
-                      <h2 className="flex items-center gap-2 text-base font-bold text-blue-900 mb-3">
-                        <Search className="w-5 h-5 text-blue-600" /> Partial Match ({partial.length})
-                      </h2>
-                      <div className="flex flex-wrap gap-2">
-                        {partial.map((k, i) => (
-                          <span key={i} className="px-3 py-1.5 bg-white/70 text-blue-700 text-xs font-medium rounded-full border border-blue-200">{k.keyword}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Weak — listed only */}
-                  {listedOnly.length > 0 && (
-                    <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-2xl shadow-sm border border-yellow-200 p-6">
-                      <h2 className="flex items-center gap-2 text-base font-bold text-yellow-900 mb-3">
-                        <AlertTriangle className="w-5 h-5 text-yellow-600" /> Listed But Not Proven ({listedOnly.length})
-                      </h2>
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {listedOnly.map((k, i) => (
-                          <span key={i} className="px-3 py-1.5 bg-white/70 text-yellow-700 text-xs font-medium rounded-full border border-yellow-200">{k.keyword}</span>
-                        ))}
-                      </div>
-                      <p className="text-xs text-yellow-700 bg-white/50 rounded-lg px-3 py-2">
-                        These skills are in your Skills section but not backed by project or experience proof. Add them to your work experience bullets to strengthen your score.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Missing — red */}
-                  {notFound.length > 0 && (
-                    <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl shadow-sm border border-red-200 p-6">
-                      <h2 className="flex items-center gap-2 text-base font-bold text-red-900 mb-3">
-                        <TrendingDown className="w-5 h-5 text-red-500" /> Missing from Resume ({notFound.length})
-                      </h2>
-                      <div className="space-y-2">
-                        {notFound.map((k, i) => (
-                          <div key={i} className="flex items-center justify-between bg-white/70 rounded-xl px-4 py-3 border border-red-100">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="px-2.5 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">{k.keyword}</span>
-                              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${k.requirement === "required" ? "bg-red-50 text-red-500" : "bg-gray-100 text-gray-500"}`}>
-                                {k.requirement}
-                              </span>
-                            </div>
-                            <a
-                              href={`https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free+course`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800 transition shrink-0 ml-2"
-                            >
-                              <BookOpen className="w-3.5 h-3.5" /> Learn <ExternalLink className="w-3 h-3" />
-                            </a>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ── Learning Priority ── */}
+                  {/* ── What To Do Next ── */}
                   {(notFound.length > 0 || listedOnly.length > 0) && (
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                      <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900 mb-4">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                          <GraduationCap className="w-4 h-4 text-white" />
-                        </div>
-                        Your Learning Priority
+                    <div className="bg-gray-900 rounded-2xl p-6 text-white">
+                      <h2 className="flex items-center gap-2 text-base font-bold mb-1">
+                        <Zap className="w-5 h-5 text-yellow-400" /> What To Do Next
                       </h2>
-                      <p className="text-sm text-gray-500 mb-4">Focus on these skills in order — required skills first, then nice-to-haves.</p>
+                      <p className="text-xs text-gray-400 mb-5">Follow these steps to improve your score for this role.</p>
 
-                      <div className="space-y-2">
-                        {/* Required missing — highest priority */}
-                        {notFound.filter(k => k.requirement === "required").map((k, i) => (
-                          <div key={`req-${i}`} className="flex items-center gap-3 bg-red-50/50 rounded-xl px-4 py-3 border border-red-100">
-                            <span className="w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center shrink-0">
-                              {i + 1}
-                            </span>
-                            <div className="flex-1 min-w-0">
-                              <span className="text-sm font-semibold text-gray-900">{k.keyword}</span>
-                              <span className="text-[10px] text-red-500 font-medium ml-2">Required — High Priority</span>
+                      <div className="space-y-4">
+                        {notFound.filter(k => k.requirement === "required").length > 0 && (
+                          <div className="bg-white/10 rounded-xl p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">!</span>
+                              <span className="text-sm font-semibold">Critical — Add these required skills</span>
                             </div>
-                            <a href={`https://www.youtube.com/results?search_query=${encodeURIComponent(k.keyword)}+tutorial+for+beginners`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-red-600 hover:text-red-800 shrink-0">
-                              YouTube <ExternalLink className="w-2.5 h-2.5 inline" />
-                            </a>
-                          </div>
-                        ))}
-
-                        {/* Weak skills — medium priority (need proof) */}
-                        {listedOnly.map((k, i) => (
-                          <div key={`weak-${i}`} className="flex items-center gap-3 bg-yellow-50/50 rounded-xl px-4 py-3 border border-yellow-100">
-                            <span className="w-6 h-6 rounded-full bg-yellow-500 text-white text-xs font-bold flex items-center justify-center shrink-0">
-                              <Zap className="w-3 h-3" />
-                            </span>
-                            <div className="flex-1 min-w-0">
-                              <span className="text-sm font-semibold text-gray-900">{k.keyword}</span>
-                              <span className="text-[10px] text-yellow-600 font-medium ml-2">Add to projects</span>
+                            <div className="flex flex-wrap gap-1.5 mb-3">
+                              {notFound.filter(k => k.requirement === "required").map((k, i) => (
+                                <span key={i} className="px-2.5 py-1 bg-red-500/20 text-red-200 text-xs font-medium rounded-full border border-red-500/30">{k.keyword}</span>
+                              ))}
+                            </div>
+                            <p className="text-xs text-gray-400">These are dealbreakers. Without them, most ATS systems will auto-reject your resume.</p>
+                            <div className="flex flex-wrap gap-2 mt-3">
+                              {notFound.filter(k => k.requirement === "required").slice(0, 3).map((k, i) => (
+                                <a key={i} href={`https://www.youtube.com/results?search_query=${encodeURIComponent(k.keyword)}+tutorial+for+beginners`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-yellow-400 hover:text-yellow-300 flex items-center gap-1">
+                                  Learn {k.keyword} <ExternalLink className="w-2.5 h-2.5" />
+                                </a>
+                              ))}
                             </div>
                           </div>
-                        ))}
+                        )}
 
-                        {/* Preferred missing — lower priority */}
-                        {notFound.filter(k => k.requirement === "preferred").map((k, i) => (
-                          <div key={`pref-${i}`} className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
-                            <span className="w-6 h-6 rounded-full bg-gray-400 text-white text-xs font-bold flex items-center justify-center shrink-0">
-                              +
-                            </span>
-                            <div className="flex-1 min-w-0">
-                              <span className="text-sm font-medium text-gray-700">{k.keyword}</span>
-                              <span className="text-[10px] text-gray-400 font-medium ml-2">Nice to have</span>
+                        {listedOnly.length > 0 && (
+                          <div className="bg-white/10 rounded-xl p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="w-5 h-5 rounded-full bg-yellow-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+                                <Zap className="w-2.5 h-2.5" />
+                              </span>
+                              <span className="text-sm font-semibold">Strengthen — Back up these with proof</span>
                             </div>
-                            <a href={`https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-blue-500 hover:text-blue-700 shrink-0">
-                              Learn <ExternalLink className="w-2.5 h-2.5 inline" />
-                            </a>
+                            <div className="flex flex-wrap gap-1.5 mb-3">
+                              {listedOnly.map((k, i) => (
+                                <span key={i} className="px-2.5 py-1 bg-yellow-500/20 text-yellow-200 text-xs font-medium rounded-full border border-yellow-500/30">{k.keyword}</span>
+                              ))}
+                            </div>
+                            <p className="text-xs text-gray-400">You listed these in Skills but never mentioned them in your projects or experience. Add a bullet like: &quot;Built X using {listedOnly[0]?.keyword}&quot;.</p>
                           </div>
-                        ))}
+                        )}
+
+                        {notFound.filter(k => k.requirement === "preferred").length > 0 && (
+                          <div className="bg-white/10 rounded-xl p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="w-5 h-5 rounded-full bg-gray-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">+</span>
+                              <span className="text-sm font-semibold">Bonus — Nice-to-have skills</span>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5 mb-3">
+                              {notFound.filter(k => k.requirement === "preferred").map((k, i) => (
+                                <span key={i} className="px-2.5 py-1 bg-gray-500/20 text-gray-300 text-xs font-medium rounded-full border border-gray-500/30">{k.keyword}</span>
+                              ))}
+                            </div>
+                            <p className="text-xs text-gray-400">Not required, but adding even one of these gives you an edge over other candidates.</p>
+                          </div>
+                        )}
+
+                        {exact.length > 0 && (
+                          <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="w-5 h-5 rounded-full bg-green-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">✓</span>
+                              <span className="text-sm font-semibold">Keep — Your strongest matches</span>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {exact.map((k, i) => (
+                                <span key={i} className="px-2.5 py-1 bg-green-500/20 text-green-300 text-xs font-medium rounded-full border border-green-500/30">{k.keyword}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
-
-                  {/* ── Quick Action Plan ── */}
-                  <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 text-white">
-                    <h2 className="flex items-center gap-2 text-base font-bold mb-3">
-                      <Zap className="w-5 h-5 text-yellow-400" /> Quick Action Plan
-                    </h2>
-                    <div className="space-y-3 text-sm">
-                      {notFound.filter(k => k.requirement === "required").length > 0 && (
-                        <div className="flex items-start gap-2">
-                          <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
-                          <p className="text-gray-300"><span className="text-white font-medium">Add missing required skills</span> — {notFound.filter(k => k.requirement === "required").map(k => k.keyword).join(", ")}. These are dealbreakers.</p>
-                        </div>
-                      )}
-                      {listedOnly.length > 0 && (
-                        <div className="flex items-start gap-2">
-                          <span className="w-5 h-5 rounded-full bg-yellow-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
-                          <p className="text-gray-300"><span className="text-white font-medium">Back up listed skills with proof</span> — mention {listedOnly.map(k => k.keyword).join(", ")} in your project/experience bullets.</p>
-                        </div>
-                      )}
-                      {notFound.filter(k => k.requirement === "preferred").length > 0 && (
-                        <div className="flex items-start gap-2">
-                          <span className="w-5 h-5 rounded-full bg-gray-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
-                          <p className="text-gray-300"><span className="text-white font-medium">Consider adding preferred skills</span> — {notFound.filter(k => k.requirement === "preferred").map(k => k.keyword).join(", ")}. These give you an edge.</p>
-                        </div>
-                      )}
-                      {exact.length > 0 && (
-                        <div className="flex items-start gap-2">
-                          <span className="w-5 h-5 rounded-full bg-green-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">✓</span>
-                          <p className="text-gray-300"><span className="text-white font-medium">Keep what&apos;s working</span> — your {exact.slice(0, 3).map(k => k.keyword).join(", ")} matches are strong. Don&apos;t remove them.</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
                 </>
               )
             })() : (
