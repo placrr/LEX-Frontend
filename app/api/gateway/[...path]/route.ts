@@ -55,7 +55,28 @@ async function proxy(
   params: { path: string[] }
 ) {
   const cookieStore = await cookies()
-  const token = cookieStore.get("accessToken")?.value
+  let token = cookieStore.get("accessToken")?.value
+
+  // If access token is missing, try refreshing it
+  if (!token) {
+    try {
+      const refreshRes = await fetch(
+        `${request.nextUrl.origin}/api/auth/refresh`,
+        { method: "POST", headers: { cookie: request.headers.get("cookie") || "" } }
+      )
+      if (refreshRes.ok) {
+        // Read the new access token from the refresh response's set-cookie header
+        const setCookies = refreshRes.headers.getSetCookie?.() || []
+        for (const c of setCookies) {
+          const match = c.match(/accessToken=([^;]+)/)
+          if (match) {
+            token = match[1]
+            break
+          }
+        }
+      }
+    } catch {}
+  }
 
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
