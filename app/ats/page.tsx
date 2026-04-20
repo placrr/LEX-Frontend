@@ -425,8 +425,13 @@ export default function ATSPage() {
               </div>
 
               {loadingReports ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="w-5 h-5 animate-spin text-gray-300" />
+                <div className="flex flex-col items-center gap-3 py-10">
+                  <div className="flex gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+                  </div>
+                  <p className="text-xs text-gray-400">Loading reports...</p>
                 </div>
               ) : reports.length === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-8">
