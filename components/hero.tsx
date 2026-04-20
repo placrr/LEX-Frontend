@@ -2,10 +2,10 @@ import { ArrowRight, FileSearch, Mic, Briefcase } from "lucide-react"
 import Link from "next/link"
 
 const floatingTags = [
-  { label: "ATS Score: 87%", style: { left: "3%", top: "22%" }, delay: "0.6s" },
-  { label: "Keywords Matched", style: { left: "3%", top: "65%" }, delay: "0.8s" },
-  { label: "Resume Optimized", style: { right: "3%", top: "22%" }, delay: "1s" },
-  { label: "Interview Ready", style: { right: "3%", top: "65%" }, delay: "1.2s" },
+  { label: "ATS Score: 87%", style: { left: "2%", top: "15%" }, delay: "0.6s" },
+  { label: "Interview Ready", style: { left: "5%", top: "45%" }, delay: "0.8s" },
+  { label: "Keywords Matched", style: { right: "2%", top: "15%" }, delay: "1s" },
+  { label: "Resume Optimized", style: { right: "5%", top: "45%" }, delay: "1.2s" },
 ]
 
 export default function Hero({ loggedIn = false }: { loggedIn?: boolean }) {
@@ -73,7 +73,7 @@ export default function Hero({ loggedIn = false }: { loggedIn?: boolean }) {
         </div>
 
         {/* Floating tags — decorative */}
-        <div className="hidden lg:block relative h-0">
+        <div className="hidden xl:block relative h-0">
           {floatingTags.map((tag) => (
             <div
               key={tag.label}
