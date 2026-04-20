@@ -1,5 +1,6 @@
 import { cookies, headers } from "next/headers"
 import Navbar from "../navbar"
+import TokenRefresher from "./TokenRefresher"
 import { verifyAccessToken } from "@/lib/tokens"
 import { prisma } from "@/lib/prisma"
 import { redis } from "@/lib/redis"
@@ -30,57 +31,44 @@ export default async function NavbarWrapper() {
   const cookieStore = await cookies()
 
   let token = cookieStore.get("accessToken")?.value
+  const refreshToken = cookieStore.get("refreshToken")?.value
 
-  // If access token missing but refresh token exists, try refreshing
-  if (!token) {
-    const refreshToken = cookieStore.get("refreshToken")?.value
-    if (!refreshToken) {
-      return <Navbar user={null} />
-    }
-
-    // Try to refresh - call the refresh endpoint
+  // If access token missing but refresh token exists, decode refresh token
+  // to get userId directly (skip the full refresh — can't set cookies in Server Components)
+  if (!token && refreshToken) {
     try {
-      const { verifyRefreshToken, generateAccessToken, generateRefreshToken } = await import("@/lib/tokens")
-      const { setAuthCookies } = await import("@/lib/cookies")
-      const bcrypt = (await import("bcrypt")).default
-      const { randomUUID } = await import("node:crypto")
-
+      const { verifyRefreshToken } = await import("@/lib/tokens")
       const payload = verifyRefreshToken(refreshToken)
-      const tokenRecord = await prisma.refreshToken.findUnique({ where: { id: payload.tokenId } })
 
-      if (tokenRecord && tokenRecord.expiresAt > new Date()) {
-        const valid = await bcrypt.compare(refreshToken, tokenRecord.tokenHash)
-        if (valid) {
-          const user = await prisma.user.findUnique({
-            where: { id: payload.userId },
-            select: { email: true, plan: true, role: true }
-          })
+      // Use userId from refresh token to fetch user directly
+      const user = await prisma.user.findUnique({
+        where: { id: payload.userId },
+        select: { name: true, email: true, plan: true }
+      })
 
-          if (user) {
-            await prisma.refreshToken.delete({ where: { id: payload.tokenId } })
-            const newTokenId = randomUUID()
-            const newAccess = generateAccessToken(payload.userId, user.email, user.plan, user.role)
-            const newRefresh = generateRefreshToken(payload.userId, newTokenId)
-            await prisma.refreshToken.create({
-              data: {
-                id: newTokenId,
-                tokenHash: await bcrypt.hash(newRefresh, 8),
-                userId: payload.userId,
-                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-              }
-            })
-            await setAuthCookies(newAccess, newRefresh)
-            token = newAccess
-          }
-        }
+      if (user) {
+        // Show the user in navbar + render a client component that triggers refresh
+        return (
+          <>
+            <TokenRefresher />
+            <Navbar user={user} />
+          </>
+        )
       }
     } catch {
-      // Refresh failed — show logged out
+      // Invalid refresh token
     }
 
-    if (!token) {
-      return <Navbar user={null} />
-    }
+    return (
+      <>
+        <TokenRefresher />
+        <Navbar user={null} />
+      </>
+    )
+  }
+
+  if (!token) {
+    return <Navbar user={null} />
   }
 
   try {
