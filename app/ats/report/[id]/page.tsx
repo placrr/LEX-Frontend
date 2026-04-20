@@ -6,18 +6,18 @@ import {
   ArrowLeft, Loader2, Send, X, MessageCircle,
   TrendingUp, TrendingDown, Lightbulb,
   Search, AlertTriangle, CheckCircle2,
-  Target, ExternalLink, BookOpen, Zap, GraduationCap, BarChart3,
+  Target, ExternalLink, BookOpen, Zap, GraduationCap,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function fmt(text: string): string {
+// ─── Inline markdown formatter (bold, code) ──────────────────────────────────
+function formatInline(text: string): string {
   return text
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/`(.+?)`/g, '<code class="bg-gray-200 px-1 py-0.5 rounded text-[11px]">$1</code>')
+    .replace(/`(.+?)`/g, '<code class="bg-gray-200 px-1 py-0.5 rounded text-xs">$1</code>')
 }
 
+// ─── API paths ────────────────────────────────────────────────────────────────
 const API = {
   scoreDetail: (id: string) => `/api/gateway/ats/api/v1/score/${id}`,
   chatHistory: (id: string) => `/api/gateway/ats/api/v1/chat/${id}`,
@@ -26,385 +26,676 @@ const API = {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface KW { keyword: string; requirement: "required" | "preferred"; matchType: "exact" | "partial" | "listed_only" | "not_found"; matchWeight: number; evidence: string | null }
-interface Pen { reason: string; points: number }
-interface Bon { reason: string; points: number }
-interface SB { rawScore: number; totalPenalties: number; totalBonuses: number; finalScore: number }
-interface Report {
-  id: string; status: string; atsScore: number | null; jobTitle: string | null; jobDescription: string | null
-  strengths: string[]; improvements: string[]; recommendations: string[]
-  keywordsFound: string[]; suggestedKeywords: string[]
-  keywordMatchScore: number | null; semanticScore: number | null; skillsCoverageScore: number | null
-  experienceScore: number | null; educationScore: number | null; formatScore: number | null
-  keywordMatches: KW[] | null; penalties: Pen[] | null; bonuses: Bon[] | null
-  scoreBreakdown: SB | null; domainMatch: string | null; resume: { id: string; fileUrl: string }; createdAt: string
+interface KeywordMatch {
+  keyword: string
+  requirement: "required" | "preferred"
+  matchType: "exact" | "partial" | "listed_only" | "not_found"
+  matchWeight: number
+  evidence: string | null
 }
-interface Chat { id: string; role: "USER" | "ASSISTANT"; message: string; createdAt: string }
 
-function scoreColor(s: number) { return s >= 85 ? "text-green-600" : s >= 70 ? "text-purple-600" : s >= 55 ? "text-yellow-600" : "text-red-500" }
-function scoreBg(s: number) { return s >= 85 ? "bg-green-500" : s >= 70 ? "bg-purple-500" : s >= 55 ? "bg-yellow-500" : "bg-red-500" }
-function scoreLabel(s: number) { return s >= 85 ? "Excellent" : s >= 70 ? "Strong" : s >= 55 ? "Average" : "Needs Work" }
-function barColor(v: number) { return v >= 80 ? "bg-green-500" : v >= 60 ? "bg-purple-500" : v >= 40 ? "bg-yellow-500" : "bg-red-400" }
+interface Penalty  { reason: string; points: number }
+interface Bonus    { reason: string; points: number }
+
+interface ScoreBreakdown {
+  rawScore: number
+  totalPenalties: number
+  totalBonuses: number
+  finalScore: number
+}
+
+interface FullReport {
+  id: string
+  status: "PROCESSING" | "COMPLETED" | "FAILED"
+  atsScore: number | null
+  jobTitle: string | null
+  jobDescription: string | null
+
+  strengths: string[]
+  improvements: string[]
+  recommendations: string[]
+  keywordsFound: string[]
+  suggestedKeywords: string[]
+
+  keywordMatchScore: number | null
+  semanticScore: number | null
+  skillsCoverageScore: number | null
+  experienceScore: number | null
+  educationScore: number | null
+  formatScore: number | null
+
+  keywordMatches: KeywordMatch[] | null
+  penalties: Penalty[] | null
+  bonuses: Bonus[] | null
+  scoreBreakdown: ScoreBreakdown | null
+  domainMatch: string | null
+
+  resume: { id: string; fileUrl: string }
+  createdAt: string
+}
+
+interface ChatMessage {
+  id: string
+  role: "USER" | "ASSISTANT"
+  message: string
+  createdAt: string
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function scoreBadge(score: number) {
+  if (score >= 85) return { label: "Excellent", bg: "bg-green-50", text: "text-green-700", border: "border-green-200" }
+  if (score >= 70) return { label: "Strong",    bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" }
+  if (score >= 55) return { label: "Average",   bg: "bg-yellow-50", text: "text-yellow-700", border: "border-yellow-200" }
+  return               { label: "Needs Work", bg: "bg-red-50",    text: "text-red-700",    border: "border-red-200" }
+}
+
+function dimensionBar(label: string, value: number | null) {
+  if (value == null) return null
+  const pct = Math.max(0, Math.min(100, value))
+  const color =
+    pct >= 80 ? "bg-green-500" :
+    pct >= 60 ? "bg-purple-500" :
+    pct >= 40 ? "bg-yellow-500" :
+    "bg-red-500"
+
+  return (
+    <div key={label} className="flex items-center gap-3">
+      <span className="text-xs text-gray-600 w-24 sm:w-28 shrink-0">{label}</span>
+      <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+        <div className={`h-full rounded-full ${color} transition-all duration-500`} style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-xs font-bold text-gray-900 w-8 text-right">{value}</span>
+    </div>
+  )
+}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ReportPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const [report, setReport] = useState<Report | null>(null)
+
+  const [report, setReport] = useState<FullReport | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  const [tab, setTab] = useState<"score" | "gaps">("score")
+  const [activeTab, setActiveTab] = useState<"score" | "gaps">("score")
   const [chatOpen, setChatOpen] = useState(false)
-  const [msgs, setMsgs] = useState<Chat[]>([])
-  const [chatIn, setChatIn] = useState("")
+
+  // Chat
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [chatInput, setChatInput] = useState("")
   const [sending, setSending] = useState(false)
-  const chatEnd = useRef<HTMLDivElement>(null)
+  const chatEndRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => { fetch(API.scoreDetail(id)).then(r => r.ok ? r.json() : Promise.reject()).then(d => setReport(d.report)).catch(() => setError("Report not found")).finally(() => setLoading(false)) }, [id])
-  useEffect(() => { fetch(API.chatHistory(id)).then(r => r.ok ? r.json() : null).then(d => d?.messages && setMsgs(d.messages)).catch(() => {}) }, [id])
-  useEffect(() => { chatEnd.current?.scrollIntoView({ behavior: "smooth" }) }, [msgs])
+  // ─── Fetch report ─────────────────────────────────────────────────────────
 
-  async function send() {
-    const text = chatIn.trim(); if (!text || sending) return
-    setSending(true); setChatIn("")
-    const tid = crypto.randomUUID()
-    setMsgs(p => [...p, { id: tid, role: "USER", message: text, createdAt: new Date().toISOString() }])
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch(API.scoreDetail(id))
+        if (!res.ok) throw new Error("Report not found")
+        const data = await res.json()
+        setReport(data.report)
+      } catch (e: any) {
+        setError(e.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [id])
+
+  // ─── Fetch chat history ───────────────────────────────────────────────────
+
+  useEffect(() => {
+    async function loadChat() {
+      try {
+        const res = await fetch(API.chatHistory(id))
+        if (res.ok) {
+          const data = await res.json()
+          setMessages(data.messages || [])
+        }
+      } catch {}
+    }
+    loadChat()
+  }, [id])
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages])
+
+  // ─── Send chat ────────────────────────────────────────────────────────────
+
+  async function handleSend() {
+    const text = chatInput.trim()
+    if (!text || sending) return
+
+    setSending(true)
+    setChatInput("")
+
+    // Optimistic user message
+    const tempId = crypto.randomUUID()
+    setMessages((prev) => [...prev, { id: tempId, role: "USER", message: text, createdAt: new Date().toISOString() }])
+
     try {
-      const r = await fetch(API.chatSend(id), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text }) })
-      if (!r.ok) throw 0
-      const d = await r.json()
-      setMsgs(p => [...p, { id: d.chatId, role: "ASSISTANT", message: d.assistantMessage, createdAt: new Date().toISOString() }])
-    } catch { setMsgs(p => p.filter(m => m.id !== tid)); setChatIn(text) }
-    finally { setSending(false) }
+      const res = await fetch(API.chatSend(id), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      })
+
+      if (!res.ok) throw new Error("Send failed")
+
+      const data = await res.json()
+      setMessages((prev) => [
+        ...prev,
+        { id: data.chatId, role: "ASSISTANT", message: data.assistantMessage, createdAt: new Date().toISOString() },
+      ])
+    } catch {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId))
+      setChatInput(text)
+    } finally {
+      setSending(false)
+    }
   }
 
-  if (loading) return <div className="min-h-screen bg-[#F9F7F3] flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>
-  if (error || !report) return (
-    <div className="min-h-screen bg-[#F9F7F3] flex flex-col items-center justify-center gap-4">
-      <p className="text-gray-500">{error || "Report not found"}</p>
-      <Link href="/ats"><Button variant="outline" className="rounded-full"><ArrowLeft className="w-4 h-4 mr-2" /> Back</Button></Link>
-    </div>
-  )
+  // ─── Loading / Error ──────────────────────────────────────────────────────
 
-  const s = report.atsScore ?? 0
-  const dims = [
-    { label: "Keyword Match", val: report.keywordMatchScore, weight: "25%" },
-    { label: "Semantic", val: report.semanticScore, weight: "20%" },
-    { label: "Skills Coverage", val: report.skillsCoverageScore, weight: "15%" },
-    { label: "Experience", val: report.experienceScore, weight: "15%" },
-    { label: "Education", val: report.educationScore, weight: "10%" },
-    { label: "Format", val: report.formatScore, weight: "10%" },
-  ]
-  const kw = report.keywordMatches ?? []
-  const exact = kw.filter(k => k.matchType === "exact")
-  const partial = kw.filter(k => k.matchType === "partial")
-  const weak = kw.filter(k => k.matchType === "listed_only")
-  const missing = kw.filter(k => k.matchType === "not_found")
-  const reqAll = kw.filter(k => k.requirement === "required")
-  const reqMatched = reqAll.filter(k => k.matchType === "exact" || k.matchType === "partial")
-  const covPct = reqAll.length > 0 ? Math.round((reqMatched.length / reqAll.length) * 100) : 0
-
-  // ─── Chat renderer ─────────────────────────────────────────────────────────
-  function ChatPanel({ className = "", maxH = "calc(100vh-8rem)" }: { className?: string; maxH?: string }) {
+  if (loading) {
     return (
-      <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col ${className}`} style={{ height: maxH }}>
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-50">
-          <div className="w-6 h-6 rounded-md bg-purple-500 flex items-center justify-center"><MessageCircle className="w-3 h-3 text-white" /></div>
-          <span className="text-sm font-semibold text-gray-900">Ask AI</span>
-        </div>
-        <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
-          {msgs.length === 0 && <p className="text-[11px] text-gray-400 text-center py-8">Ask about your score, gaps, or how to improve...</p>}
-          {msgs.map(m => (
-            <div key={m.id} className={`text-[13px] leading-relaxed px-3 py-2 rounded-xl max-w-[90%] ${m.role === "USER" ? "bg-gray-900 text-white ml-auto" : "bg-gray-50 text-gray-800 border border-gray-100"}`}>
-              {m.role === "USER" ? m.message : (
-                <div className="space-y-1.5 [&_strong]:font-semibold">
-                  {m.message.split(/\n{2,}/).map((b, i) => {
-                    const t = b.trim(); if (!t) return null
-                    const lm = t.match(/^(\d+)[.)]\s+(.+)/); if (lm) return <div key={i} className="flex gap-1.5"><span className="text-gray-400 shrink-0">{lm[1]}.</span><span dangerouslySetInnerHTML={{ __html: fmt(lm[2]) }} /></div>
-                    const bm = t.match(/^[-•]\s+(.+)/); if (bm) return <div key={i} className="flex gap-1.5"><span className="text-gray-400">•</span><span dangerouslySetInnerHTML={{ __html: fmt(bm[1]) }} /></div>
-                    return <p key={i} dangerouslySetInnerHTML={{ __html: fmt(t.replace(/\n/g, "<br/>")) }} />
-                  })}
-                </div>
-              )}
-            </div>
-          ))}
-          {sending && <div className="text-[13px] text-gray-400 bg-gray-50 border border-gray-100 px-3 py-2 rounded-xl w-fit"><Loader2 className="w-3 h-3 animate-spin inline mr-1" />Thinking...</div>}
-          <div ref={chatEnd} />
-        </div>
-        <div className="flex gap-2 p-2.5 border-t border-gray-50">
-          <input value={chatIn} onChange={e => setChatIn(e.target.value)} onKeyDown={e => e.key === "Enter" && !e.shiftKey && send()} placeholder="Ask a question..." maxLength={2000} className="flex-1 bg-gray-50 border-0 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-200" />
-          <Button size="icon" onClick={send} disabled={sending || !chatIn.trim()} className="bg-gray-900 hover:bg-gray-800 text-white rounded-lg disabled:opacity-30 h-9 w-9"><Send className="w-3.5 h-3.5" /></Button>
-        </div>
+      <div className="min-h-screen bg-[#F9F7F3] flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
       </div>
     )
   }
 
+  if (error || !report) {
+    return (
+      <div className="min-h-screen bg-[#F9F7F3] flex flex-col items-center justify-center gap-4">
+        <p className="text-gray-500">{error || "Report not found"}</p>
+        <Link href="/ats">
+          <Button variant="outline" className="rounded-full">
+            <ArrowLeft className="w-4 h-4 mr-2" /> Back to ATS
+          </Button>
+        </Link>
+      </div>
+    )
+  }
+
+  const badge = report.atsScore != null ? scoreBadge(report.atsScore) : null
+
+  const dimensions = [
+    { label: "Keyword Match",    value: report.keywordMatchScore },
+    { label: "Semantic Score",   value: report.semanticScore },
+    { label: "Skills Coverage",  value: report.skillsCoverageScore },
+    { label: "Experience",       value: report.experienceScore },
+    { label: "Education",        value: report.educationScore },
+    { label: "Format",           value: report.formatScore },
+  ]
+
+  // ─── Render ───────────────────────────────────────────────────────────────
+
   return (
     <div className="min-h-screen bg-[#F9F7F3]">
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-5xl mx-auto px-4 py-8">
 
-        <Link href="/ats" className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-gray-900 mb-5 transition">
-          <ArrowLeft className="w-4 h-4" /> Back
+        {/* Back */}
+        <Link href="/ats" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 mb-6 transition">
+          <ArrowLeft className="w-4 h-4" /> Back to ATS
         </Link>
 
         {/* ── Score Header ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-7 mb-5">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{report.jobTitle || "ATS Report"}</h1>
-              <p className="text-xs text-gray-400 mt-1">{new Date(report.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}{report.domainMatch && ` · ${report.domainMatch}`}</p>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                {report.jobTitle || "General Analysis"}
+              </h1>
+              <p className="text-sm text-gray-400">
+                {new Date(report.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+              </p>
             </div>
-            <div className="flex items-center gap-2.5">
-              <span className={`text-4xl sm:text-5xl font-black tabular-nums ${scoreColor(s)}`}>{s}</span>
-              <div>
-                <span className="text-xs text-gray-400 block">/100</span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${scoreBg(s)} text-white`}>{scoreLabel(s)}</span>
+            {report.atsScore != null && badge && (
+              <div className="flex items-center gap-3">
+                <span className={`text-3xl sm:text-5xl font-bold ${badge.text}`}>{report.atsScore}</span>
+                <div className="flex flex-col">
+                  <span className="text-sm text-gray-400">/ 100</span>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${badge.bg} ${badge.text} ${badge.border}`}>
+                    {badge.label}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
+
+          {/* Domain Match */}
+          {report.domainMatch && (
+            <p className="mt-4 text-sm text-gray-500">
+              <span className="font-medium text-gray-700">Domain:</span> {report.domainMatch}
+            </p>
+          )}
         </div>
 
-        {/* ── Layout ── */}
-        <div className="flex gap-5">
+        {/* ── Layout: Tabs + Chat side by side on desktop ── */}
+        <div className="flex gap-6">
 
-          {/* Left: Tabs */}
-          <div className="flex-1 min-w-0">
+        {/* Left: Tab content */}
+        <div className="flex-1 min-w-0">
 
-            <div className="flex gap-1 bg-white rounded-xl border border-gray-100 p-1 mb-5">
-              {([{ key: "score" as const, label: "Score", icon: BarChart3 }, { key: "gaps" as const, label: "Skill Gap", icon: Target }]).map(t => (
-                <button key={t.key} onClick={() => setTab(t.key)} className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition ${tab === t.key ? "bg-gray-900 text-white" : "text-gray-400 hover:text-gray-700"}`}>
-                  <t.icon className="w-3.5 h-3.5" />{t.label}
-                </button>
-              ))}
+        {/* Tabs */}
+        <div className="flex gap-1 bg-white rounded-2xl shadow-sm border border-gray-100 p-1.5 mb-6">
+          {([
+            { key: "score", label: "Score Breakdown", icon: TrendingUp },
+            { key: "gaps", label: "Skill Gap Analysis", icon: Target },
+          ] as const).map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                activeTab === tab.key
+                  ? "bg-gray-900 text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Tab: Score ── */}
+        {activeTab === "score" && (
+          <div className="space-y-6">
+            {/* Dimensions */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Score Breakdown</h2>
+              <div className="space-y-4">
+                {dimensions.map((d) => dimensionBar(d.label, d.value))}
+              </div>
+              {report.scoreBreakdown && (
+                <div className="mt-6 pt-4 border-t border-gray-100 grid grid-cols-3 gap-2 sm:gap-4 text-center text-xs sm:text-sm">
+                  <div>
+                    <div className="text-gray-400">Raw</div>
+                    <div className="font-semibold text-gray-900">{report.scoreBreakdown.rawScore}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-400">Penalties</div>
+                    <div className="font-semibold text-red-500">{report.scoreBreakdown.totalPenalties}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-400">Bonuses</div>
+                    <div className="font-semibold text-green-600">+{report.scoreBreakdown.totalBonuses}</div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* ── SCORE TAB ── */}
-            {tab === "score" && (
-              <div className="space-y-4">
+            {/* Strengths */}
+            {report.strengths?.length > 0 && (
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl shadow-sm border border-green-200 p-6">
+                <h2 className="flex items-center gap-2 text-lg font-bold text-green-900 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center"><TrendingUp className="w-4 h-4 text-white" /></div>
+                  What&apos;s Working
+                </h2>
+                <ul className="space-y-3">
+                  {report.strengths.map((s, i) => (
+                    <li key={i} className="flex items-start gap-3 bg-white/70 rounded-xl px-4 py-3 border border-green-100">
+                      <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 shrink-0" />
+                      <span className="text-sm text-gray-800 leading-relaxed">{s}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-                {/* Dimension bars */}
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                  <h2 className="text-sm font-bold text-gray-900 mb-4">Scoring Dimensions</h2>
-                  <div className="space-y-3">
-                    {dims.map(d => d.val != null && (
-                      <div key={d.label} className="flex items-center gap-2.5">
-                        <span className="text-[11px] text-gray-500 w-24 shrink-0">{d.label}</span>
-                        <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                          <div className={`h-full rounded-full ${barColor(d.val)} transition-all duration-700`} style={{ width: `${d.val}%` }} />
-                        </div>
-                        <span className="text-[11px] font-bold text-gray-900 w-7 text-right tabular-nums">{d.val}</span>
-                        <span className="text-[9px] text-gray-300 w-6">{d.weight}</span>
-                      </div>
-                    ))}
-                  </div>
-                  {report.scoreBreakdown && (
-                    <div className="flex items-center gap-4 mt-4 pt-3 border-t border-gray-50 text-[11px]">
-                      <span className="text-gray-400">Raw <span className="font-bold text-gray-900">{report.scoreBreakdown.rawScore}</span></span>
-                      <span className="text-gray-400">Penalties <span className="font-bold text-red-500">{report.scoreBreakdown.totalPenalties}</span></span>
-                      <span className="text-gray-400">Bonuses <span className="font-bold text-green-600">+{report.scoreBreakdown.totalBonuses}</span></span>
-                    </div>
-                  )}
-                </div>
+            {/* Improvements */}
+            {report.improvements?.length > 0 && (
+              <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl shadow-sm border border-red-200 p-6">
+                <h2 className="flex items-center gap-2 text-lg font-bold text-red-900 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center"><AlertTriangle className="w-4 h-4 text-white" /></div>
+                  Critical Gaps
+                </h2>
+                <ul className="space-y-3">
+                  {report.improvements.map((s, i) => (
+                    <li key={i} className="flex items-start gap-3 bg-white/70 rounded-xl px-4 py-3 border border-red-100">
+                      <TrendingDown className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
+                      <span className="text-sm text-gray-800 leading-relaxed">{s}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-                {/* Strengths + Improvements side by side on desktop */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {report.strengths?.length > 0 && (
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                      <h2 className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-3">
-                        <span className="w-5 h-5 rounded-md bg-green-500 flex items-center justify-center"><CheckCircle2 className="w-3 h-3 text-white" /></span>
-                        Strengths
-                      </h2>
-                      <ul className="space-y-2">
-                        {report.strengths.map((s, i) => (
-                          <li key={i} className="text-[13px] text-gray-700 leading-relaxed pl-3 border-l-2 border-green-300">{s}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {report.improvements?.length > 0 && (
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                      <h2 className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-3">
-                        <span className="w-5 h-5 rounded-md bg-red-500 flex items-center justify-center"><AlertTriangle className="w-3 h-3 text-white" /></span>
-                        Improve
-                      </h2>
-                      <ul className="space-y-2">
-                        {report.improvements.map((s, i) => (
-                          <li key={i} className="text-[13px] text-gray-700 leading-relaxed pl-3 border-l-2 border-red-300">{s}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
+            {/* Recommendations */}
+            {report.recommendations?.length > 0 && (
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl shadow-sm border border-purple-200 p-6">
+                <h2 className="flex items-center gap-2 text-lg font-bold text-purple-900 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center"><Lightbulb className="w-4 h-4 text-white" /></div>
+                  Exact Fixes to Make
+                </h2>
+                <ul className="space-y-3">
+                  {report.recommendations.map((s, i) => (
+                    <li key={i} className="flex items-start gap-3 bg-white/70 rounded-xl px-4 py-3 border border-purple-100">
+                      <span className="w-6 h-6 rounded-full bg-purple-500 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                      <span className="text-sm text-gray-800 leading-relaxed">{s}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-                {/* Recommendations */}
-                {report.recommendations?.length > 0 && (
-                  <div className="bg-gray-900 rounded-2xl shadow-sm p-5 text-white">
-                    <h2 className="flex items-center gap-2 text-sm font-bold mb-3">
-                      <Lightbulb className="w-4 h-4 text-yellow-400" /> Action Items
-                    </h2>
-                    <div className="space-y-2">
-                      {report.recommendations.map((s, i) => (
-                        <div key={i} className="flex items-start gap-2.5">
-                          <span className="w-5 h-5 rounded-full bg-white/15 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-                          <p className="text-[13px] text-gray-300 leading-relaxed">{s}</p>
+            {/* Penalties & Bonuses */}
+            {(report.penalties?.length || report.bonuses?.length) ? (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-3">Scoring Adjustments</h2>
+                {report.penalties && report.penalties.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-xs font-medium text-red-500 mb-2">Penalties</p>
+                    <div className="space-y-1.5">
+                      {report.penalties.map((p, i) => (
+                        <div key={i} className="flex justify-between text-sm">
+                          <span className="text-gray-700">{p.reason}</span>
+                          <span className="font-medium text-red-500">{p.points}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
-
-                {/* Penalties & Bonuses — compact */}
-                {(report.penalties?.length || report.bonuses?.length) ? (
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <h2 className="text-sm font-bold text-gray-900 mb-3">Adjustments</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {report.penalties && report.penalties.length > 0 && (
-                        <div className="space-y-1">
-                          {report.penalties.map((p, i) => (
-                            <div key={i} className="flex items-center justify-between text-[12px]">
-                              <span className="text-gray-600 truncate mr-2">{p.reason}</span>
-                              <span className="font-bold text-red-500 tabular-nums shrink-0">{p.points}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {report.bonuses && report.bonuses.length > 0 && (
-                        <div className="space-y-1">
-                          {report.bonuses.map((b, i) => (
-                            <div key={i} className="flex items-center justify-between text-[12px]">
-                              <span className="text-gray-600 truncate mr-2">{b.reason}</span>
-                              <span className="font-bold text-green-600 tabular-nums shrink-0">+{b.points}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            )}
-
-            {/* ── SKILL GAP TAB ── */}
-            {tab === "gaps" && (
-              <div className="space-y-4">
-                {kw.length > 0 ? (
-                  <>
-                    {/* Stats row */}
-                    <div className="grid grid-cols-4 gap-2">
-                      {[
-                        { n: exact.length, label: "Exact", color: "text-green-600 border-green-100" },
-                        { n: partial.length, label: "Partial", color: "text-blue-600 border-blue-100" },
-                        { n: weak.length, label: "Weak", color: "text-yellow-600 border-yellow-100" },
-                        { n: missing.length, label: "Missing", color: "text-red-500 border-red-100" },
-                      ].map(x => (
-                        <div key={x.label} className={`bg-white rounded-xl border p-3 text-center ${x.color}`}>
-                          <div className="text-xl font-black tabular-nums">{x.n}</div>
-                          <div className="text-[10px] text-gray-500">{x.label}</div>
+                {report.bonuses && report.bonuses.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-green-600 mb-2">Bonuses</p>
+                    <div className="space-y-1.5">
+                      {report.bonuses.map((b, i) => (
+                        <div key={i} className="flex justify-between text-sm">
+                          <span className="text-gray-700">{b.reason}</span>
+                          <span className="font-medium text-green-600">+{b.points}</span>
                         </div>
                       ))}
                     </div>
+                  </div>
+                )}
+              </div>
+            ) : null}
+          </div>
+        )}
 
-                    {/* Coverage */}
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold text-gray-900">Required Skills Coverage</span>
-                        <span className={`text-sm font-black tabular-nums ${covPct >= 80 ? "text-green-600" : covPct >= 50 ? "text-yellow-600" : "text-red-500"}`}>{covPct}%</span>
-                      </div>
-                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full ${covPct >= 80 ? "bg-green-500" : covPct >= 50 ? "bg-yellow-500" : "bg-red-500"} transition-all duration-700`} style={{ width: `${covPct}%` }} />
-                      </div>
-                      <p className="text-[11px] text-gray-400 mt-2">{reqMatched.length} of {reqAll.length} required skills matched</p>
+        {/* ── Tab: Skill Gap ── */}
+        {activeTab === "gaps" && (
+          <div className="space-y-6">
+            {report.keywordMatches && report.keywordMatches.length > 0 ? (() => {
+              const exact = report.keywordMatches!.filter(k => k.matchType === "exact")
+              const partial = report.keywordMatches!.filter(k => k.matchType === "partial")
+              const listedOnly = report.keywordMatches!.filter(k => k.matchType === "listed_only")
+              const notFound = report.keywordMatches!.filter(k => k.matchType === "not_found")
+              const required = report.keywordMatches!.filter(k => k.requirement === "required")
+              const preferred = report.keywordMatches!.filter(k => k.requirement === "preferred")
+              const requiredMatched = required.filter(k => k.matchType === "exact" || k.matchType === "partial")
+              const preferredMatched = preferred.filter(k => k.matchType === "exact" || k.matchType === "partial")
+              const coveragePct = required.length > 0 ? Math.round((requiredMatched.length / required.length) * 100) : 0
+              const totalMatched = exact.length + partial.length
+              const total = report.keywordMatches!.length
+
+              return (
+                <>
+                  {/* ── Overview Cards ── */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="bg-white rounded-2xl border border-gray-100 p-4 text-center">
+                      <div className="text-2xl font-bold text-gray-900">{total}</div>
+                      <div className="text-[11px] text-gray-500 mt-0.5">JD Keywords</div>
                     </div>
+                    <div className="bg-white rounded-2xl border border-green-100 p-4 text-center">
+                      <div className="text-2xl font-bold text-green-600">{totalMatched}</div>
+                      <div className="text-[11px] text-gray-500 mt-0.5">Matched</div>
+                    </div>
+                    <div className="bg-white rounded-2xl border border-yellow-100 p-4 text-center">
+                      <div className="text-2xl font-bold text-yellow-600">{listedOnly.length}</div>
+                      <div className="text-[11px] text-gray-500 mt-0.5">Need Proof</div>
+                    </div>
+                    <div className="bg-white rounded-2xl border border-red-100 p-4 text-center">
+                      <div className="text-2xl font-bold text-red-500">{notFound.length}</div>
+                      <div className="text-[11px] text-gray-500 mt-0.5">Missing</div>
+                    </div>
+                  </div>
 
-                    {/* Keyword table */}
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                      <div className="px-5 py-3 border-b border-gray-50">
-                        <h2 className="text-sm font-bold text-gray-900">All {kw.length} Keywords</h2>
+                  {/* ── Coverage Bars ── */}
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h2 className="text-base font-bold text-gray-900 mb-4">Coverage Breakdown</h2>
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-sm text-gray-700">Required Skills</span>
+                          <span className="text-xs font-bold text-gray-900">{requiredMatched.length}/{required.length}</span>
+                        </div>
+                        <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full ${coveragePct >= 80 ? "bg-green-500" : coveragePct >= 50 ? "bg-yellow-500" : "bg-red-500"}`} style={{ width: `${coveragePct}%` }} />
+                        </div>
                       </div>
-                      <div className="divide-y divide-gray-50">
-                        {kw.map((k, i) => (
-                          <div key={i} className="flex items-center gap-3 px-5 py-2.5 hover:bg-gray-50/50 transition">
-                            <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${k.matchType === "exact" ? "bg-green-500" : k.matchType === "partial" ? "bg-blue-500" : k.matchType === "listed_only" ? "bg-yellow-500" : "bg-red-400"}`} />
-                            <span className="text-[13px] font-medium text-gray-900 flex-1">{k.keyword}</span>
-                            <span className={`text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded ${k.requirement === "required" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-400"}`}>{k.requirement === "required" ? "REQ" : "PREF"}</span>
-                            <span className={`text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded ${k.matchType === "exact" ? "bg-green-100 text-green-700" : k.matchType === "partial" ? "bg-blue-100 text-blue-700" : k.matchType === "listed_only" ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-600"}`}>{k.matchType === "not_found" ? "MISS" : k.matchType === "listed_only" ? "WEAK" : k.matchType.toUpperCase()}</span>
-                            {k.matchType === "not_found" && (
-                              <a href={`https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free+course`} target="_blank" rel="noopener noreferrer" className="text-[10px] text-blue-500 hover:text-blue-700"><ExternalLink className="w-3 h-3" /></a>
-                            )}
-                          </div>
-                        ))}
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-sm text-gray-700">Preferred Skills</span>
+                          <span className="text-xs font-bold text-gray-900">{preferredMatched.length}/{preferred.length}</span>
+                        </div>
+                        <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full bg-blue-500" style={{ width: `${preferred.length > 0 ? Math.round((preferredMatched.length / preferred.length) * 100) : 0}%` }} />
+                        </div>
                       </div>
                     </div>
+                  </div>
 
-                    {/* Action plan */}
-                    {(missing.length > 0 || weak.length > 0) && (
-                      <div className="bg-gray-900 rounded-2xl shadow-sm p-5 text-white">
-                        <h2 className="flex items-center gap-2 text-sm font-bold mb-4"><Zap className="w-4 h-4 text-yellow-400" /> Fix These to Boost Your Score</h2>
+                  {/* ── Full Keyword Table ── */}
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h2 className="text-base font-bold text-gray-900 mb-4">All Keywords from Job Description</h2>
+                    <div className="space-y-2">
+                      {report.keywordMatches!.map((k, i) => (
+                        <div key={i} className={`flex items-center gap-3 rounded-xl px-4 py-3 border ${
+                          k.matchType === "exact" ? "bg-green-50/50 border-green-100" :
+                          k.matchType === "partial" ? "bg-blue-50/50 border-blue-100" :
+                          k.matchType === "listed_only" ? "bg-yellow-50/50 border-yellow-100" :
+                          "bg-red-50/50 border-red-100"
+                        }`}>
+                          <div className={`w-2 h-2 rounded-full shrink-0 ${
+                            k.matchType === "exact" ? "bg-green-500" :
+                            k.matchType === "partial" ? "bg-blue-500" :
+                            k.matchType === "listed_only" ? "bg-yellow-500" :
+                            "bg-red-500"
+                          }`} />
+                          <span className="text-sm font-medium text-gray-900 flex-1">{k.keyword}</span>
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                            k.requirement === "required" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-500"
+                          }`}>{k.requirement}</span>
+                          <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                            k.matchType === "exact" ? "bg-green-100 text-green-700" :
+                            k.matchType === "partial" ? "bg-blue-100 text-blue-700" :
+                            k.matchType === "listed_only" ? "bg-yellow-100 text-yellow-700" :
+                            "bg-red-100 text-red-700"
+                          }`}>{k.matchType === "listed_only" ? "weak" : k.matchType === "not_found" ? "missing" : k.matchType}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
 
-                        {missing.filter(k => k.requirement === "required").length > 0 && (
-                          <div className="mb-4">
-                            <p className="text-[10px] uppercase tracking-widest text-red-400 font-bold mb-2">Critical — Required & Missing</p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {missing.filter(k => k.requirement === "required").map((k, i) => (
-                                <a key={i} href={`https://www.youtube.com/results?search_query=${encodeURIComponent(k.keyword)}+tutorial`} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1 bg-red-500/20 text-red-200 text-xs font-medium rounded-md border border-red-500/30 hover:bg-red-500/30 transition">
-                                  {k.keyword} <ExternalLink className="w-2.5 h-2.5 inline ml-0.5" />
+                  {/* ── What To Do Next ── */}
+                  {(notFound.length > 0 || listedOnly.length > 0) && (
+                    <div className="bg-gray-900 rounded-2xl p-6 text-white">
+                      <h2 className="flex items-center gap-2 text-base font-bold mb-1">
+                        <Zap className="w-5 h-5 text-yellow-400" /> What To Do Next
+                      </h2>
+                      <p className="text-xs text-gray-400 mb-5">Follow these steps to improve your score for this role.</p>
+
+                      <div className="space-y-4">
+                        {notFound.filter(k => k.requirement === "required").length > 0 && (
+                          <div className="bg-white/10 rounded-xl p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">!</span>
+                              <span className="text-sm font-semibold">Critical — Add these required skills</span>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5 mb-3">
+                              {notFound.filter(k => k.requirement === "required").map((k, i) => (
+                                <span key={i} className="px-2.5 py-1 bg-red-500/20 text-red-200 text-xs font-medium rounded-full border border-red-500/30">{k.keyword}</span>
+                              ))}
+                            </div>
+                            <p className="text-xs text-gray-400">These are dealbreakers. Without them, most ATS systems will auto-reject your resume.</p>
+                            <div className="flex flex-wrap gap-2 mt-3">
+                              {notFound.filter(k => k.requirement === "required").slice(0, 3).map((k, i) => (
+                                <a key={i} href={`https://www.youtube.com/results?search_query=${encodeURIComponent(k.keyword)}+tutorial+for+beginners`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-yellow-400 hover:text-yellow-300 flex items-center gap-1">
+                                  Learn {k.keyword} <ExternalLink className="w-2.5 h-2.5" />
                                 </a>
                               ))}
                             </div>
                           </div>
                         )}
 
-                        {weak.length > 0 && (
-                          <div className="mb-4">
-                            <p className="text-[10px] uppercase tracking-widest text-yellow-400 font-bold mb-2">Strengthen — Add Project Proof</p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {weak.map((k, i) => <span key={i} className="px-2.5 py-1 bg-yellow-500/15 text-yellow-200 text-xs font-medium rounded-md border border-yellow-500/25">{k.keyword}</span>)}
+                        {listedOnly.length > 0 && (
+                          <div className="bg-white/10 rounded-xl p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="w-5 h-5 rounded-full bg-yellow-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+                                <Zap className="w-2.5 h-2.5" />
+                              </span>
+                              <span className="text-sm font-semibold">Strengthen — Back up these with proof</span>
                             </div>
-                            <p className="text-[11px] text-gray-500 mt-2">Add these to your experience bullets: &quot;Built X using {weak[0]?.keyword}&quot;</p>
+                            <div className="flex flex-wrap gap-1.5 mb-3">
+                              {listedOnly.map((k, i) => (
+                                <span key={i} className="px-2.5 py-1 bg-yellow-500/20 text-yellow-200 text-xs font-medium rounded-full border border-yellow-500/30">{k.keyword}</span>
+                              ))}
+                            </div>
+                            <p className="text-xs text-gray-400">You listed these in Skills but never mentioned them in your projects or experience. Add a bullet like: &quot;Built X using {listedOnly[0]?.keyword}&quot;.</p>
                           </div>
                         )}
 
-                        {missing.filter(k => k.requirement === "preferred").length > 0 && (
-                          <div>
-                            <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-2">Nice to Have</p>
+                        {notFound.filter(k => k.requirement === "preferred").length > 0 && (
+                          <div className="bg-white/10 rounded-xl p-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="w-5 h-5 rounded-full bg-gray-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">+</span>
+                              <span className="text-sm font-semibold">Bonus — Nice-to-have skills</span>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5 mb-3">
+                              {notFound.filter(k => k.requirement === "preferred").map((k, i) => (
+                                <span key={i} className="px-2.5 py-1 bg-gray-500/20 text-gray-300 text-xs font-medium rounded-full border border-gray-500/30">{k.keyword}</span>
+                              ))}
+                            </div>
+                            <p className="text-xs text-gray-400">Not required, but adding even one of these gives you an edge over other candidates.</p>
+                          </div>
+                        )}
+
+                        {exact.length > 0 && (
+                          <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="w-5 h-5 rounded-full bg-green-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">✓</span>
+                              <span className="text-sm font-semibold">Keep — Your strongest matches</span>
+                            </div>
                             <div className="flex flex-wrap gap-1.5">
-                              {missing.filter(k => k.requirement === "preferred").map((k, i) => <span key={i} className="px-2.5 py-1 bg-white/5 text-gray-400 text-xs font-medium rounded-md border border-white/10">{k.keyword}</span>)}
+                              {exact.map((k, i) => (
+                                <span key={i} className="px-2.5 py-1 bg-green-500/20 text-green-300 text-xs font-medium rounded-full border border-green-500/30">{k.keyword}</span>
+                              ))}
                             </div>
                           </div>
                         )}
                       </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-                    <Target className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-                    <p className="text-sm text-gray-400">No keyword data for this report.</p>
-                  </div>
-                )}
+                    </div>
+                  )}
+                </>
+              )
+            })() : (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
+                <Target className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+                <p className="text-sm text-gray-400">No keyword match data available for this report.</p>
               </div>
             )}
+          </div>
+        )}
 
-          </div>{/* end left */}
+        </div>{/* end left: tab content */}
 
-          {/* Right: Chat — desktop */}
-          <div className="hidden lg:block w-72 xl:w-80 shrink-0">
-            <div className="sticky top-20">
-              <ChatPanel maxH="calc(100vh - 6rem)" />
+        {/* Right: Chat sidebar — visible on lg+, floating on mobile */}
+        <div className="hidden lg:flex w-80 shrink-0">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col sticky top-24 w-full" style={{ height: "calc(100vh - 8rem)" }}>
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+              <div className="w-7 h-7 rounded-lg bg-purple-500 flex items-center justify-center">
+                <MessageCircle className="w-3.5 h-3.5 text-white" />
+              </div>
+              <span className="text-sm font-semibold text-gray-900">Ask AI</span>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+              {messages.length === 0 && (
+                <div className="text-center py-8">
+                  <MessageCircle className="w-6 h-6 text-gray-200 mx-auto mb-2" />
+                  <p className="text-xs text-gray-400">Ask about gaps, how to improve, what recruiters look for...</p>
+                </div>
+              )}
+              {messages.map((msg) => (
+                <div key={msg.id} className={`text-sm px-3 py-2.5 rounded-2xl max-w-[95%] ${msg.role === "USER" ? "bg-gray-900 text-white ml-auto" : "bg-gray-100 text-gray-800"}`}>
+                  {msg.role === "USER" ? msg.message : (
+                    <div className="space-y-2 leading-relaxed [&_strong]:font-semibold">
+                      {msg.message.split(/\n{2,}/).map((block, i) => {
+                        const t = block.trim(); if (!t) return null
+                        const lm = t.match(/^(\d+)[.)]\s+(.+)/); if (lm) return <div key={i} className="flex gap-2"><span className="text-gray-400 shrink-0 font-medium">{lm[1]}.</span><span dangerouslySetInnerHTML={{ __html: formatInline(lm[2]) }} /></div>
+                        const bm = t.match(/^[-•]\s+(.+)/); if (bm) return <div key={i} className="flex gap-2"><span className="text-gray-400 shrink-0">•</span><span dangerouslySetInnerHTML={{ __html: formatInline(bm[1]) }} /></div>
+                        return <p key={i} dangerouslySetInnerHTML={{ __html: formatInline(t.replace(/\n/g, "<br/>")) }} />
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
+              {sending && <div className="bg-gray-100 text-gray-400 text-sm px-3 py-2.5 rounded-2xl w-fit"><Loader2 className="w-3.5 h-3.5 animate-spin inline mr-1" /> Thinking...</div>}
+              <div ref={chatEndRef} />
+            </div>
+
+            <div className="flex gap-2 p-3 border-t border-gray-100">
+              <input value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()} placeholder="Type a question..." maxLength={2000} className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 transition" />
+              <Button size="icon" onClick={handleSend} disabled={sending || !chatInput.trim()} className="bg-gray-900 hover:bg-gray-800 text-white rounded-xl disabled:opacity-40 h-10 w-10"><Send className="w-4 h-4" /></Button>
             </div>
           </div>
+        </div>
 
-        </div>{/* end flex */}
+        </div>{/* end flex layout */}
+
       </div>
 
-      {/* Mobile chat */}
+      {/* Mobile: Floating chat button + panel (lg: hidden) */}
       <div className="lg:hidden">
-        <button onClick={() => setChatOpen(!chatOpen)} className="fixed bottom-5 right-5 w-12 h-12 bg-gray-900 text-white rounded-full shadow-lg flex items-center justify-center z-50">
-          {chatOpen ? <X className="w-4 h-4" /> : <MessageCircle className="w-4 h-4" />}
-          {msgs.length > 0 && !chatOpen && <span className="absolute -top-1 -right-1 w-4 h-4 bg-purple-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">{msgs.length}</span>}
+        <button
+          onClick={() => setChatOpen(!chatOpen)}
+          className="fixed bottom-6 right-6 w-14 h-14 bg-gray-900 hover:bg-gray-800 text-white rounded-full shadow-xl shadow-gray-900/30 flex items-center justify-center transition-all z-50"
+        >
+          {chatOpen ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
+          {messages.length > 0 && !chatOpen && (
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{messages.length}</span>
+          )}
         </button>
+
         {chatOpen && (
-          <div className="fixed bottom-20 right-3 left-3 z-50 animate-[fadeUp_0.15s_ease_both]">
-            <ChatPanel maxH="min(400px, calc(100vh - 140px))" />
+          <div className="fixed bottom-24 right-4 left-4 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 animate-[fadeUp_0.2s_ease_both]" style={{ maxHeight: "min(450px, calc(100vh - 150px))" }}>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-purple-500 flex items-center justify-center"><MessageCircle className="w-3.5 h-3.5 text-white" /></div>
+                <span className="text-sm font-semibold text-gray-900">Ask AI</span>
+              </div>
+              <button onClick={() => setChatOpen(false)} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+              {messages.length === 0 && <p className="text-xs text-gray-400 text-center py-6">Ask about gaps, improvements, what recruiters look for...</p>}
+              {messages.map((msg) => (
+                <div key={msg.id} className={`text-sm px-3 py-2.5 rounded-2xl max-w-[85%] ${msg.role === "USER" ? "bg-gray-900 text-white ml-auto" : "bg-gray-100 text-gray-800"}`}>
+                  {msg.role === "USER" ? msg.message : (
+                    <div className="space-y-2 leading-relaxed [&_strong]:font-semibold">
+                      {msg.message.split(/\n{2,}/).map((block, i) => {
+                        const t = block.trim(); if (!t) return null
+                        const lm = t.match(/^(\d+)[.)]\s+(.+)/); if (lm) return <div key={i} className="flex gap-2"><span className="text-gray-400 shrink-0 font-medium">{lm[1]}.</span><span dangerouslySetInnerHTML={{ __html: formatInline(lm[2]) }} /></div>
+                        const bm = t.match(/^[-•]\s+(.+)/); if (bm) return <div key={i} className="flex gap-2"><span className="text-gray-400 shrink-0">•</span><span dangerouslySetInnerHTML={{ __html: formatInline(bm[1]) }} /></div>
+                        return <p key={i} dangerouslySetInnerHTML={{ __html: formatInline(t.replace(/\n/g, "<br/>")) }} />
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
+              {sending && <div className="bg-gray-100 text-gray-400 text-sm px-3 py-2.5 rounded-2xl w-fit"><Loader2 className="w-3.5 h-3.5 animate-spin inline mr-1" /> Thinking...</div>}
+              <div ref={chatEndRef} />
+            </div>
+            <div className="flex gap-2 p-3 border-t border-gray-100">
+              <input value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()} placeholder="Type a question..." maxLength={2000} className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 transition" />
+              <Button size="icon" onClick={handleSend} disabled={sending || !chatInput.trim()} className="bg-gray-900 hover:bg-gray-800 text-white rounded-xl disabled:opacity-40 h-10 w-10"><Send className="w-4 h-4" /></Button>
+            </div>
           </div>
         )}
       </div>
