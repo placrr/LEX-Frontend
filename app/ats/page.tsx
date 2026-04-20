@@ -313,14 +313,7 @@ export default function ATSPage() {
 
           {/* ── Left: Upload Form ── */}
           <div className="lg:col-span-3">
-            <div className={`bg-white rounded-2xl shadow-sm border p-6 space-y-5 transition ${limitReached ? "border-red-200 opacity-60 pointer-events-none select-none" : "border-gray-100"}`}>
-
-              {limitReached && (
-                <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-                  <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
-                  <span className="text-sm text-red-700 font-medium">Plan limit reached. Upgrade to continue scanning.</span>
-                </div>
-              )}
+            <div className={`bg-white rounded-2xl shadow-sm border p-6 space-y-5 transition ${limitReached ? "border-red-200 opacity-50 cursor-not-allowed" : "border-gray-100"}`}>
 
               {/* File Upload */}
               <div>
