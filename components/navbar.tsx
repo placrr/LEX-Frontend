@@ -246,19 +246,21 @@ export default function Navbar({ user }: NavbarProps) {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => router.push("/dashboard")}
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded-lg cursor-pointer"
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setOpenUserMenu(false)}
+                        className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded-lg"
                       >
                         Dashboard
-                      </button>
+                      </Link>
 
-                      <button
-                        onClick={() => router.push("/#pricing")}
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded-lg cursor-pointer"
+                      <Link
+                        href="/#pricing"
+                        onClick={() => setOpenUserMenu(false)}
+                        className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded-lg"
                       >
                         Upgrade Plan
-                      </button>
+                      </Link>
 
                       <button
                         onClick={handleLogout}
@@ -461,19 +463,21 @@ export default function Navbar({ user }: NavbarProps) {
 
                     </div>
 
-                    <button
-                      onClick={() => router.push("/dashboard")}
-                      className="w-full bg-gray-100 text-gray-900 px-6 py-3 rounded-full text-base font-medium hover:bg-gray-200 transition cursor-pointer"
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block w-full text-center bg-gray-100 text-gray-900 px-6 py-3 rounded-full text-base font-medium hover:bg-gray-200 transition"
                     >
                       Dashboard
-                    </button>
+                    </Link>
 
-                    <button
-                      onClick={() => router.push("/#pricing")}
-                      className="w-full bg-gray-100 text-gray-900 px-6 py-3 rounded-full text-base font-medium hover:bg-gray-200 transition cursor-pointer"
+                    <Link
+                      href="/#pricing"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block w-full text-center bg-gray-100 text-gray-900 px-6 py-3 rounded-full text-base font-medium hover:bg-gray-200 transition"
                     >
                       Upgrade Plan
-                    </button>
+                    </Link>
 
                     <button
                       onClick={handleLogout}
