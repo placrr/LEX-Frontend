@@ -29,10 +29,58 @@ export default async function NavbarWrapper() {
 
   const cookieStore = await cookies()
 
-  const token = cookieStore.get("accessToken")?.value
+  let token = cookieStore.get("accessToken")?.value
 
+  // If access token missing but refresh token exists, try refreshing
   if (!token) {
-    return <Navbar user={null} />
+    const refreshToken = cookieStore.get("refreshToken")?.value
+    if (!refreshToken) {
+      return <Navbar user={null} />
+    }
+
+    // Try to refresh - call the refresh endpoint
+    try {
+      const { verifyRefreshToken, generateAccessToken, generateRefreshToken } = await import("@/lib/tokens")
+      const { setAuthCookies } = await import("@/lib/cookies")
+      const bcrypt = (await import("bcrypt")).default
+      const { randomUUID } = await import("node:crypto")
+
+      const payload = verifyRefreshToken(refreshToken)
+      const tokenRecord = await prisma.refreshToken.findUnique({ where: { id: payload.tokenId } })
+
+      if (tokenRecord && tokenRecord.expiresAt > new Date()) {
+        const valid = await bcrypt.compare(refreshToken, tokenRecord.tokenHash)
+        if (valid) {
+          const user = await prisma.user.findUnique({
+            where: { id: payload.userId },
+            select: { email: true, plan: true, role: true }
+          })
+
+          if (user) {
+            await prisma.refreshToken.delete({ where: { id: payload.tokenId } })
+            const newTokenId = randomUUID()
+            const newAccess = generateAccessToken(payload.userId, user.email, user.plan, user.role)
+            const newRefresh = generateRefreshToken(payload.userId, newTokenId)
+            await prisma.refreshToken.create({
+              data: {
+                id: newTokenId,
+                tokenHash: await bcrypt.hash(newRefresh, 8),
+                userId: payload.userId,
+                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+              }
+            })
+            await setAuthCookies(newAccess, newRefresh)
+            token = newAccess
+          }
+        }
+      }
+    } catch {
+      // Refresh failed — show logged out
+    }
+
+    if (!token) {
+      return <Navbar user={null} />
+    }
   }
 
   try {
