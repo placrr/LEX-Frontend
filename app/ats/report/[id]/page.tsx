@@ -496,29 +496,32 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
 
                   {/* ── Skills Breakdown ── */}
                   {[
-                    { items: exact, title: "Matched Skills", desc: "Found in your experience with proof", icon: CheckCircle2, accent: "emerald" },
-                    { items: partial, title: "Partial Matches", desc: "Synonym or stem match found", icon: Search, accent: "sky" },
-                    { items: listedOnly, title: "Needs Evidence", desc: "In Skills section but no project proof", icon: AlertTriangle, accent: "amber" },
-                    { items: notFound, title: "Missing Skills", desc: "Not found in your resume", icon: X, accent: "rose" },
+                    { items: exact, title: "Matched Skills", desc: "Found in your experience with context proof — highest ATS weight", icon: CheckCircle2, bg: "bg-emerald-50", border: "border-emerald-200", iconBg: "bg-emerald-500", pillBg: "bg-white", pillBorder: "border-emerald-300", pillDot: "bg-emerald-500", titleColor: "text-emerald-900" },
+                    { items: partial, title: "Partial Matches", desc: "Synonym or stem match — use exact JD wording to score higher", icon: Search, bg: "bg-sky-50", border: "border-sky-200", iconBg: "bg-sky-500", pillBg: "bg-white", pillBorder: "border-sky-300", pillDot: "bg-sky-500", titleColor: "text-sky-900" },
+                    { items: listedOnly, title: "Needs Evidence", desc: "Listed in Skills but no project proof — ATS counts at 50% weight", icon: AlertTriangle, bg: "bg-amber-50", border: "border-amber-200", iconBg: "bg-amber-500", pillBg: "bg-white", pillBorder: "border-amber-300", pillDot: "bg-amber-500", titleColor: "text-amber-900" },
+                    { items: notFound, title: "Missing Skills", desc: "Not found anywhere — required ones will get you auto-rejected", icon: X, bg: "bg-rose-50", border: "border-rose-200", iconBg: "bg-rose-500", pillBg: "bg-white", pillBorder: "border-rose-300", pillDot: "bg-rose-500", titleColor: "text-rose-900" },
                   ].filter(g => g.items.length > 0).map(g => (
-                    <div key={g.title} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                      <div className={`flex items-center gap-3 px-5 py-3 border-b border-gray-50 border-l-4 border-l-${g.accent}-500`}>
-                        <g.icon className={`w-4 h-4 text-${g.accent}-500`} />
-                        <div className="flex-1">
+                    <div key={g.title} className={`rounded-2xl border shadow-sm overflow-hidden ${g.bg} ${g.border}`}>
+                      <div className="px-5 py-4 flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-lg ${g.iconBg} flex items-center justify-center shrink-0`}>
+                          <g.icon className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
                           <div className="flex items-center gap-2">
-                            <h3 className="text-[13px] font-bold text-gray-900">{g.title}</h3>
-                            <span className="text-[11px] font-bold text-gray-400">{g.items.length}</span>
+                            <h3 className={`text-base font-bold ${g.titleColor}`}>{g.title}</h3>
+                            <span className="text-sm font-bold text-gray-500">{g.items.length}</span>
                           </div>
-                          <p className="text-[11px] text-gray-400">{g.desc}</p>
+                          <p className="text-sm text-gray-600 leading-snug">{g.desc}</p>
                         </div>
                       </div>
-                      <div className="p-4 flex flex-wrap gap-2">
+                      <div className="px-5 pb-5 flex flex-wrap gap-2">
                         {g.items.map((k, i) => (
-                          <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium bg-gray-50 text-gray-800 border border-gray-200">
+                          <span key={i} className={`inline-flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full text-sm font-semibold border shadow-sm ${g.pillBg} ${g.pillBorder} text-gray-900`}>
+                            <span className={`w-2 h-2 rounded-full ${g.pillDot}`} />
                             {k.keyword}
-                            {k.requirement === "required" && <span className="text-[8px] font-black bg-gray-900 text-white px-1.5 py-0.5 rounded">REQ</span>}
+                            {k.requirement === "required" && <span className="text-[8px] font-black bg-gray-900 text-white px-1.5 py-0.5 rounded ml-0.5">REQ</span>}
                             {k.matchType === "not_found" && (
-                              <a href={`https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free+course`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700"><ExternalLink className="w-3 h-3" /></a>
+                              <a href={`https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free+course`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 ml-0.5"><ExternalLink className="w-3.5 h-3.5" /></a>
                             )}
                           </span>
                         ))}
