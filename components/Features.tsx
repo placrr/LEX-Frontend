@@ -90,7 +90,7 @@ export default function Features() {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-60px" }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
         >
           {features.map((f) => (
             <motion.div
@@ -107,7 +107,7 @@ export default function Features() {
               <p className="text-sm text-gray-600 leading-relaxed mb-6">{f.description}</p>
 
               {/* Mini stats */}
-              <div className="grid grid-cols-3 gap-3 mb-6">
+              <div className="grid grid-cols-3 gap-1.5 sm:gap-3 mb-6">
                 {f.stats.map((s) => (
                   <div key={s.label} className="text-center bg-white/70 rounded-xl py-2.5 border border-white">
                     <div className="text-base font-bold text-gray-900">{s.value}</div>

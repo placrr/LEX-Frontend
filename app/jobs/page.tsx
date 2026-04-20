@@ -23,8 +23,8 @@ export default function JobsPage() {
         </div>
 
         {/* Coming Soon Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
-          <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 md:p-12 text-center">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-6">
             <Clock className="w-8 h-8 text-green-500" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-3">Coming Soon</h2>

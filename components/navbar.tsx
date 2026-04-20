@@ -136,7 +136,7 @@ export default function Navbar({ user }: NavbarProps) {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -8 }}
                           transition={{ duration: 0.18 }}
-                          className="absolute left-1/2 -translate-x-1/2 mt-3 w-72 bg-white rounded-2xl shadow-lg border border-gray-100 p-2 z-50"
+                          className="absolute left-1/2 -translate-x-1/2 mt-3 w-[calc(100vw-2rem)] sm:w-72 max-w-72 bg-white rounded-2xl shadow-lg border border-gray-100 p-2 z-50"
                         >
                           {featureItems.map((fi) => {
                             const Icon = fi.icon;
@@ -372,7 +372,7 @@ export default function Navbar({ user }: NavbarProps) {
               className="fixed top-0 left-0 right-0 bg-white z-40 md:hidden shadow-xl rounded-b-3xl overflow-hidden flex flex-col"
             >
 
-              <div className="flex flex-col gap-6 p-8 pt-24 pb-10">
+              <div className="flex flex-col gap-5 p-5 sm:p-8 pt-20 sm:pt-24 pb-8 sm:pb-10">
 
                 {navItems.map((item) => {
                   if (item.hasDropdown) {
