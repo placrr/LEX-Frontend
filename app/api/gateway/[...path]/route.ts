@@ -112,9 +112,10 @@ async function proxy(
       },
     })
   } catch (err) {
-    console.error("Gateway proxy error:", err)
+    const message = err instanceof Error ? err.message : String(err)
+    console.error("Gateway proxy error:", message, "URL:", url.toString())
     return NextResponse.json(
-      { error: "Gateway unavailable" },
+      { error: "Gateway unavailable", debug: message },
       { status: 502 }
     )
   }
