@@ -5,6 +5,31 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Custom scrollbar — thin, minimal, professional */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
 button, a, [role="button"], input[type="submit"], input[type="button"], select, summary {
   cursor: pointer;
 }

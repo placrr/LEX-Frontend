@@ -70,7 +70,7 @@ export default async function DashboardPage() {
 
   if (!user) redirect("/login")
 
-  const totalReports = await prisma.aTSReport.count({ where: { userId } })
+  const totalReports = await prisma.aTSReport.count({ where: { userId, status: { not: "FAILED" } } })
   const planLimit = user.plan === "PRO" ? 100 : user.plan === "FREE" ? 6 : 1000
 
   return (
