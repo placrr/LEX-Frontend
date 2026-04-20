@@ -496,34 +496,29 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
 
                   {/* ── Skills Breakdown ── */}
                   {[
-                    { items: exact, title: "Matched Skills", desc: "These keywords appear in your experience with context proof. ATS will score these highest.", icon: CheckCircle2, colors: { bg: "bg-emerald-50", border: "border-emerald-200", icon: "text-emerald-600", pill: "bg-emerald-100 text-emerald-800 border-emerald-200", dot: "bg-emerald-500" } },
-                    { items: partial, title: "Partial Matches", desc: "Found as a synonym or stem match. Good, but exact wording would score higher.", icon: Search, colors: { bg: "bg-sky-50", border: "border-sky-200", icon: "text-sky-600", pill: "bg-sky-100 text-sky-800 border-sky-200", dot: "bg-sky-500" } },
-                    { items: listedOnly, title: "Listed Without Evidence", desc: "In your Skills section but not mentioned in any project or experience. ATS counts these at 50% weight.", icon: AlertTriangle, colors: { bg: "bg-amber-50", border: "border-amber-200", icon: "text-amber-600", pill: "bg-amber-100 text-amber-800 border-amber-200", dot: "bg-amber-500" } },
-                    { items: notFound, title: "Missing Skills", desc: "Not found anywhere in your resume. Required ones are dealbreakers — add them before applying.", icon: X, colors: { bg: "bg-rose-50", border: "border-rose-200", icon: "text-rose-600", pill: "bg-rose-100 text-rose-700 border-rose-200", dot: "bg-rose-500" } },
+                    { items: exact, title: "Matched Skills", desc: "Found in your experience with proof", icon: CheckCircle2, accent: "emerald" },
+                    { items: partial, title: "Partial Matches", desc: "Synonym or stem match found", icon: Search, accent: "sky" },
+                    { items: listedOnly, title: "Needs Evidence", desc: "In Skills section but no project proof", icon: AlertTriangle, accent: "amber" },
+                    { items: notFound, title: "Missing Skills", desc: "Not found in your resume", icon: X, accent: "rose" },
                   ].filter(g => g.items.length > 0).map(g => (
-                    <div key={g.title} className={`rounded-2xl border shadow-sm overflow-hidden ${g.colors.border} ${g.colors.bg}`}>
-                      <div className="px-5 py-4">
-                        <div className="flex items-start gap-3">
-                          <div className={`w-9 h-9 rounded-xl ${g.colors.bg} border ${g.colors.border} flex items-center justify-center shrink-0`}>
-                            <g.icon className={`w-4.5 h-4.5 ${g.colors.icon}`} />
+                    <div key={g.title} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                      <div className={`flex items-center gap-3 px-5 py-3 border-b border-gray-50 border-l-4 border-l-${g.accent}-500`}>
+                        <g.icon className={`w-4 h-4 text-${g.accent}-500`} />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-[13px] font-bold text-gray-900">{g.title}</h3>
+                            <span className="text-[11px] font-bold text-gray-400">{g.items.length}</span>
                           </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className="text-sm font-bold text-gray-900">{g.title}</h3>
-                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${g.colors.pill}`}>{g.items.length}</span>
-                            </div>
-                            <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">{g.desc}</p>
-                          </div>
+                          <p className="text-[11px] text-gray-400">{g.desc}</p>
                         </div>
                       </div>
-                      <div className="px-5 pb-4 flex flex-wrap gap-2">
+                      <div className="p-4 flex flex-wrap gap-2">
                         {g.items.map((k, i) => (
-                          <span key={i} className={`inline-flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full text-[12px] font-semibold border bg-white/80 ${g.colors.border} text-gray-800`}>
-                            <span className={`w-2 h-2 rounded-full ${g.colors.dot}`} />
+                          <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium bg-gray-50 text-gray-800 border border-gray-200">
                             {k.keyword}
-                            {k.requirement === "required" && <span className="text-[8px] font-black bg-gray-800 text-white px-1 py-px rounded ml-0.5">REQ</span>}
+                            {k.requirement === "required" && <span className="text-[8px] font-black bg-gray-900 text-white px-1.5 py-0.5 rounded">REQ</span>}
                             {k.matchType === "not_found" && (
-                              <a href={`https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free+course`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700 ml-0.5"><ExternalLink className="w-3 h-3" /></a>
+                              <a href={`https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free+course`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700"><ExternalLink className="w-3 h-3" /></a>
                             )}
                           </span>
                         ))}
