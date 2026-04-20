@@ -9,7 +9,7 @@ import Footer from "@/components/Footer"
 
 export default async function Home() {
   const cookieStore = await cookies()
-  const loggedIn = !!cookieStore.get("accessToken")?.value
+  const loggedIn = !!(cookieStore.get("accessToken")?.value || cookieStore.get("refreshToken")?.value)
 
   return (
     <main className="relative min-h-screen bg-[#F9F7F3] overflow-x-hidden">
