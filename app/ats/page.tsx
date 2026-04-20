@@ -446,12 +446,14 @@ export default function ATSPage() {
                       className={`w-full text-left px-4 py-3 rounded-xl border transition ${
                         report.status === "COMPLETED"
                           ? "border-gray-100 hover:bg-gray-50 cursor-pointer"
-                          : "border-gray-50 opacity-70 cursor-default"
+                          : report.status === "PROCESSING"
+                          ? "border-purple-200 bg-purple-50/50 cursor-default animate-pulse"
+                          : "border-red-100 bg-red-50/30 cursor-default"
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="min-w-0 flex-1">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className={`text-sm font-medium ${report.status === "FAILED" ? "text-gray-400" : "text-gray-900"}`}>
                             {report.jobTitle || "General Analysis"}
                           </div>
                           {report.resume?.fileUrl && (
@@ -466,15 +468,22 @@ export default function ATSPage() {
                             {new Date(report.createdAt).toLocaleDateString()}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 shrink-0">
                           {report.status === "COMPLETED" && report.atsScore != null ? (
                             <span className={`text-lg font-bold ${scoreColor(report.atsScore)}`}>
                               {report.atsScore}%
                             </span>
                           ) : report.status === "PROCESSING" ? (
-                            <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+                            <div className="flex items-center gap-2">
+                              <div className="flex gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: "0ms" }} />
+                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: "150ms" }} />
+                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: "300ms" }} />
+                              </div>
+                              <span className="text-xs font-medium text-purple-600">Analyzing</span>
+                            </div>
                           ) : (
-                            <span className="text-xs text-red-500 font-medium">Failed</span>
+                            <span className="text-xs text-red-500 font-medium bg-red-50 px-2 py-0.5 rounded-full">Failed</span>
                           )}
                           {report.status === "COMPLETED" && (
                             <ChevronRight className="w-4 h-4 text-gray-300" />
