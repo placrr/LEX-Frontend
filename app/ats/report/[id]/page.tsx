@@ -422,7 +422,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
 
         {/* ── Tab: Skill Gap ── */}
         {activeTab === "gaps" && (
-          <div className="space-y-6">
+          <div className="space-y-5">
             {report.keywordMatches && report.keywordMatches.length > 0 ? (() => {
               const exact = report.keywordMatches!.filter(k => k.matchType === "exact")
               const partial = report.keywordMatches!.filter(k => k.matchType === "partial")
@@ -433,199 +433,146 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
               const requiredMatched = required.filter(k => k.matchType === "exact" || k.matchType === "partial")
               const preferredMatched = preferred.filter(k => k.matchType === "exact" || k.matchType === "partial")
               const coveragePct = required.length > 0 ? Math.round((requiredMatched.length / required.length) * 100) : 0
-              const totalMatched = exact.length + partial.length
               const total = report.keywordMatches!.length
+              const matchedTotal = exact.length + partial.length
+              const matchPct = Math.round((matchedTotal / total) * 100)
 
               return (
                 <>
-                  {/* ── Overview Cards ── */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div className="bg-white rounded-2xl border border-gray-100 p-4 text-center">
-                      <div className="text-2xl font-bold text-gray-900">{total}</div>
-                      <div className="text-[11px] text-gray-500 mt-0.5">JD Keywords</div>
-                    </div>
-                    <div className="bg-white rounded-2xl border border-green-100 p-4 text-center">
-                      <div className="text-2xl font-bold text-green-600">{totalMatched}</div>
-                      <div className="text-[11px] text-gray-500 mt-0.5">Matched</div>
-                    </div>
-                    <div className="bg-white rounded-2xl border border-yellow-100 p-4 text-center">
-                      <div className="text-2xl font-bold text-yellow-600">{listedOnly.length}</div>
-                      <div className="text-[11px] text-gray-500 mt-0.5">Need Proof</div>
-                    </div>
-                    <div className="bg-white rounded-2xl border border-red-100 p-4 text-center">
-                      <div className="text-2xl font-bold text-red-500">{notFound.length}</div>
-                      <div className="text-[11px] text-gray-500 mt-0.5">Missing</div>
-                    </div>
-                  </div>
-
-                  {/* ── Coverage Bars ── */}
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <h2 className="text-base font-bold text-gray-900 mb-4">Coverage Breakdown</h2>
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-sm text-gray-700">Required Skills</span>
-                          <span className="text-xs font-bold text-gray-900">{requiredMatched.length}/{required.length}</span>
-                        </div>
-                        <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                          <div className={`h-full rounded-full ${coveragePct >= 80 ? "bg-green-500" : coveragePct >= 50 ? "bg-yellow-500" : "bg-red-500"}`} style={{ width: `${coveragePct}%` }} />
-                        </div>
+                  {/* ── Hero Stats ── */}
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                    <div className="grid grid-cols-3 gap-4 mb-5">
+                      <div className="text-center">
+                        <div className={`text-3xl sm:text-4xl font-black tabular-nums ${matchPct >= 75 ? "text-green-600" : matchPct >= 50 ? "text-yellow-600" : "text-red-500"}`}>{matchPct}%</div>
+                        <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mt-1">Overall Match</div>
                       </div>
-                      <div>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-sm text-gray-700">Preferred Skills</span>
-                          <span className="text-xs font-bold text-gray-900">{preferredMatched.length}/{preferred.length}</span>
-                        </div>
-                        <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                          <div className="h-full rounded-full bg-blue-500" style={{ width: `${preferred.length > 0 ? Math.round((preferredMatched.length / preferred.length) * 100) : 0}%` }} />
-                        </div>
+                      <div className="text-center border-x border-gray-100">
+                        <div className={`text-3xl sm:text-4xl font-black tabular-nums ${coveragePct >= 75 ? "text-green-600" : coveragePct >= 50 ? "text-yellow-600" : "text-red-500"}`}>{coveragePct}%</div>
+                        <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mt-1">Required Skills</div>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* ── Keyword Map ── */}
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    {/* Header with visual bar */}
-                    <div className="p-5 pb-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-sm font-bold text-gray-900">Keyword Map</h2>
-                        <span className="text-[11px] text-gray-400">{report.keywordMatches!.length} keywords from JD</span>
-                      </div>
-                      {/* Stacked bar */}
-                      <div className="flex h-3 rounded-full overflow-hidden">
-                        {exact.length > 0 && <div className="bg-green-500 transition-all" style={{ width: `${(exact.length / report.keywordMatches!.length) * 100}%` }} />}
-                        {partial.length > 0 && <div className="bg-blue-500 transition-all" style={{ width: `${(partial.length / report.keywordMatches!.length) * 100}%` }} />}
-                        {listedOnly.length > 0 && <div className="bg-yellow-400 transition-all" style={{ width: `${(listedOnly.length / report.keywordMatches!.length) * 100}%` }} />}
-                        {notFound.length > 0 && <div className="bg-red-400 transition-all" style={{ width: `${(notFound.length / report.keywordMatches!.length) * 100}%` }} />}
-                      </div>
-                      <div className="flex items-center gap-4 mt-2">
-                        {[
-                          { n: exact.length, label: "Found", color: "bg-green-500" },
-                          { n: partial.length, label: "Partial", color: "bg-blue-500" },
-                          { n: listedOnly.length, label: "Weak", color: "bg-yellow-400" },
-                          { n: notFound.length, label: "Missing", color: "bg-red-400" },
-                        ].filter(x => x.n > 0).map(x => (
-                          <span key={x.label} className="flex items-center gap-1 text-[10px] text-gray-500">
-                            <span className={`w-2 h-2 rounded-sm ${x.color}`} />{x.n} {x.label}
-                          </span>
-                        ))}
+                      <div className="text-center">
+                        <div className="text-3xl sm:text-4xl font-black tabular-nums text-gray-900">{total}</div>
+                        <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mt-1">JD Keywords</div>
                       </div>
                     </div>
 
-                    {/* Grouped sections */}
-                    <div className="border-t border-gray-100">
+                    {/* Stacked bar */}
+                    <div className="flex h-4 rounded-full overflow-hidden shadow-inner bg-gray-100">
+                      {exact.length > 0 && <div className="bg-green-500" style={{ width: `${(exact.length / total) * 100}%` }} />}
+                      {partial.length > 0 && <div className="bg-blue-500" style={{ width: `${(partial.length / total) * 100}%` }} />}
+                      {listedOnly.length > 0 && <div className="bg-yellow-400" style={{ width: `${(listedOnly.length / total) * 100}%` }} />}
+                      {notFound.length > 0 && <div className="bg-red-400" style={{ width: `${(notFound.length / total) * 100}%` }} />}
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
                       {[
-                        { items: exact, label: "Matched", icon: CheckCircle2, iconColor: "text-green-500", pillBg: "bg-green-500", pillText: "text-white" },
-                        { items: partial, label: "Partial", icon: Search, iconColor: "text-blue-500", pillBg: "bg-blue-100", pillText: "text-blue-700" },
-                        { items: listedOnly, label: "Needs Proof", icon: AlertTriangle, iconColor: "text-yellow-500", pillBg: "bg-yellow-100", pillText: "text-yellow-700" },
-                        { items: notFound, label: "Missing", icon: TrendingDown, iconColor: "text-red-500", pillBg: "bg-red-100", pillText: "text-red-700" },
-                      ].filter(g => g.items.length > 0).map((group) => (
-                        <div key={group.label} className="px-5 py-3 border-b border-gray-50 last:border-b-0">
-                          <div className="flex items-center gap-1.5 mb-2">
-                            <group.icon className={`w-3.5 h-3.5 ${group.iconColor}`} />
-                            <span className="text-[11px] font-bold text-gray-700">{group.label}</span>
-                            <span className="text-[10px] text-gray-400 ml-auto">{group.items.length}</span>
-                          </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {group.items.map((k, i) => {
-                              const isLink = k.matchType === "not_found"
-                              const Tag = isLink ? "a" : "span"
-                              const linkProps = isLink ? { href: `https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free+course`, target: "_blank", rel: "noopener noreferrer" } : {}
-                              return (
-                                <Tag key={i} {...linkProps} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                                  k.matchType === "exact" ? `${group.pillBg} ${group.pillText}` : `${group.pillBg} ${group.pillText}`
-                                } ${isLink ? "hover:opacity-80 cursor-pointer" : ""}`}>
-                                  {k.keyword}
-                                  {k.requirement === "required" && <span className="w-1 h-1 rounded-full bg-current opacity-50" />}
-                                  {isLink && <ExternalLink className="w-2.5 h-2.5 opacity-60" />}
-                                </Tag>
-                              )
-                            })}
-                          </div>
-                        </div>
+                        { n: exact.length, l: "Found", c: "bg-green-500" },
+                        { n: partial.length, l: "Partial", c: "bg-blue-500" },
+                        { n: listedOnly.length, l: "Weak", c: "bg-yellow-400" },
+                        { n: notFound.length, l: "Missing", c: "bg-red-400" },
+                      ].map(x => (
+                        <span key={x.l} className="flex items-center gap-1.5 text-[11px] text-gray-500">
+                          <span className={`w-2.5 h-2.5 rounded ${x.c}`} />
+                          <span className="font-bold text-gray-700">{x.n}</span> {x.l}
+                        </span>
                       ))}
                     </div>
                   </div>
 
-                  {/* ── What To Do Next ── */}
-                  {(notFound.length > 0 || listedOnly.length > 0) && (
-                    <div className="bg-gray-900 rounded-2xl p-6 text-white">
-                      <h2 className="flex items-center gap-2 text-base font-bold mb-1">
-                        <Zap className="w-5 h-5 text-yellow-400" /> What To Do Next
-                      </h2>
-                      <p className="text-xs text-gray-400 mb-5">Follow these steps to improve your score for this role.</p>
+                  {/* ── Keyword Grid ── */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[
+                      { items: exact, title: "Matched Skills", sub: "Found in your experience with proof", icon: CheckCircle2, accent: "green", pillClass: "bg-green-100 text-green-800 border-green-200" },
+                      { items: partial, title: "Partial Match", sub: "Similar or synonym found", icon: Search, accent: "blue", pillClass: "bg-blue-100 text-blue-800 border-blue-200" },
+                      { items: listedOnly, title: "Needs Evidence", sub: "Listed in Skills but no project proof", icon: AlertTriangle, accent: "yellow", pillClass: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+                      { items: notFound, title: "Not Found", sub: "Missing from your resume entirely", icon: X, accent: "red", pillClass: "bg-red-100 text-red-700 border-red-200" },
+                    ].filter(g => g.items.length > 0).map(g => (
+                      <div key={g.title} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                        <div className={`px-4 py-3 border-b border-gray-50 bg-${g.accent}-50/30`}>
+                          <div className="flex items-center gap-2">
+                            <g.icon className={`w-4 h-4 text-${g.accent}-500`} />
+                            <div>
+                              <span className="text-sm font-bold text-gray-900">{g.title}</span>
+                              <span className="text-[10px] text-gray-400 ml-2">{g.items.length}</span>
+                            </div>
+                          </div>
+                          <p className="text-[10px] text-gray-500 mt-0.5">{g.sub}</p>
+                        </div>
+                        <div className="p-3 flex flex-wrap gap-1.5">
+                          {g.items.map((k, i) => (
+                            <span key={i} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${g.pillClass}`}>
+                              {k.keyword}
+                              {k.requirement === "required" && <span className="text-[7px] font-black bg-gray-900 text-white px-1 rounded">R</span>}
+                              {k.matchType === "not_found" && (
+                                <a href={`https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free+course`} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-2.5 h-2.5 opacity-50 hover:opacity-100" /></a>
+                              )}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
 
-                      <div className="space-y-4">
+                  {/* ── Action Plan ── */}
+                  {(notFound.length > 0 || listedOnly.length > 0) && (
+                    <div className="bg-gray-900 rounded-2xl p-5 sm:p-6 text-white">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center"><Zap className="w-4 h-4 text-yellow-400" /></div>
+                        <div>
+                          <h2 className="text-sm font-bold">Action Plan</h2>
+                          <p className="text-[10px] text-gray-500">Do these to improve your score</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
                         {notFound.filter(k => k.requirement === "required").length > 0 && (
-                          <div className="bg-white/10 rounded-xl p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">!</span>
-                              <span className="text-sm font-semibold">Critical — Add these required skills</span>
-                            </div>
-                            <div className="flex flex-wrap gap-1.5 mb-3">
-                              {notFound.filter(k => k.requirement === "required").map((k, i) => (
-                                <span key={i} className="px-2.5 py-1 bg-red-500/20 text-red-200 text-xs font-medium rounded-full border border-red-500/30">{k.keyword}</span>
-                              ))}
-                            </div>
-                            <p className="text-xs text-gray-400">These are dealbreakers. Without them, most ATS systems will auto-reject your resume.</p>
-                            <div className="flex flex-wrap gap-2 mt-3">
-                              {notFound.filter(k => k.requirement === "required").slice(0, 3).map((k, i) => (
-                                <a key={i} href={`https://www.youtube.com/results?search_query=${encodeURIComponent(k.keyword)}+tutorial+for+beginners`} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-yellow-400 hover:text-yellow-300 flex items-center gap-1">
-                                  Learn {k.keyword} <ExternalLink className="w-2.5 h-2.5" />
-                                </a>
-                              ))}
+                          <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-red-500 text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">1</span>
+                            <div>
+                              <p className="text-[13px] font-semibold mb-1.5">Add missing required skills</p>
+                              <div className="flex flex-wrap gap-1.5 mb-2">
+                                {notFound.filter(k => k.requirement === "required").map((k, i) => (
+                                  <a key={i} href={`https://www.youtube.com/results?search_query=${encodeURIComponent(k.keyword)}+tutorial`} target="_blank" rel="noopener noreferrer" className="px-2 py-0.5 bg-red-500/20 text-red-200 text-[11px] font-medium rounded border border-red-500/25 hover:bg-red-500/30 transition">
+                                    {k.keyword} <ExternalLink className="w-2 h-2 inline" />
+                                  </a>
+                                ))}
+                              </div>
+                              <p className="text-[11px] text-gray-500">Without these, most ATS systems will auto-reject.</p>
                             </div>
                           </div>
                         )}
 
                         {listedOnly.length > 0 && (
-                          <div className="bg-white/10 rounded-xl p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="w-5 h-5 rounded-full bg-yellow-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-                                <Zap className="w-2.5 h-2.5" />
-                              </span>
-                              <span className="text-sm font-semibold">Strengthen — Back up these with proof</span>
+                          <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-yellow-500 text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">2</span>
+                            <div>
+                              <p className="text-[13px] font-semibold mb-1.5">Back up weak skills with proof</p>
+                              <div className="flex flex-wrap gap-1.5 mb-2">
+                                {listedOnly.map((k, i) => (
+                                  <span key={i} className="px-2 py-0.5 bg-yellow-500/15 text-yellow-200 text-[11px] font-medium rounded border border-yellow-500/20">{k.keyword}</span>
+                                ))}
+                              </div>
+                              <p className="text-[11px] text-gray-500">Add to experience: &quot;Built X using {listedOnly[0]?.keyword}&quot;</p>
                             </div>
-                            <div className="flex flex-wrap gap-1.5 mb-3">
-                              {listedOnly.map((k, i) => (
-                                <span key={i} className="px-2.5 py-1 bg-yellow-500/20 text-yellow-200 text-xs font-medium rounded-full border border-yellow-500/30">{k.keyword}</span>
-                              ))}
-                            </div>
-                            <p className="text-xs text-gray-400">You listed these in Skills but never mentioned them in your projects or experience. Add a bullet like: &quot;Built X using {listedOnly[0]?.keyword}&quot;.</p>
                           </div>
                         )}
 
                         {notFound.filter(k => k.requirement === "preferred").length > 0 && (
-                          <div className="bg-white/10 rounded-xl p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="w-5 h-5 rounded-full bg-gray-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">+</span>
-                              <span className="text-sm font-semibold">Bonus — Nice-to-have skills</span>
-                            </div>
-                            <div className="flex flex-wrap gap-1.5 mb-3">
-                              {notFound.filter(k => k.requirement === "preferred").map((k, i) => (
-                                <span key={i} className="px-2.5 py-1 bg-gray-500/20 text-gray-300 text-xs font-medium rounded-full border border-gray-500/30">{k.keyword}</span>
-                              ))}
-                            </div>
-                            <p className="text-xs text-gray-400">Not required, but adding even one of these gives you an edge over other candidates.</p>
-                          </div>
-                        )}
-
-                        {exact.length > 0 && (
-                          <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="w-5 h-5 rounded-full bg-green-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">✓</span>
-                              <span className="text-sm font-semibold">Keep — Your strongest matches</span>
-                            </div>
-                            <div className="flex flex-wrap gap-1.5">
-                              {exact.map((k, i) => (
-                                <span key={i} className="px-2.5 py-1 bg-green-500/20 text-green-300 text-xs font-medium rounded-full border border-green-500/30">{k.keyword}</span>
-                              ))}
+                          <div className="flex gap-3">
+                            <span className="w-6 h-6 rounded-full bg-gray-600 text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">3</span>
+                            <div>
+                              <p className="text-[13px] font-semibold mb-1.5">Consider nice-to-haves</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {notFound.filter(k => k.requirement === "preferred").map((k, i) => (
+                                  <span key={i} className="px-2 py-0.5 bg-white/5 text-gray-400 text-[11px] font-medium rounded border border-white/10">{k.keyword}</span>
+                                ))}
+                              </div>
                             </div>
                           </div>
                         )}
                       </div>
                     </div>
                   )}
+
                 </>
               )
             })() : (
