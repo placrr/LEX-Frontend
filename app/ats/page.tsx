@@ -313,7 +313,14 @@ export default function ATSPage() {
 
           {/* ── Left: Upload Form ── */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5">
+            <div className={`bg-white rounded-2xl shadow-sm border p-6 space-y-5 transition ${limitReached ? "border-red-200 opacity-60 pointer-events-none select-none" : "border-gray-100"}`}>
+
+              {limitReached && (
+                <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                  <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
+                  <span className="text-sm text-red-700 font-medium">Plan limit reached. Upgrade to continue scanning.</span>
+                </div>
+              )}
 
               {/* File Upload */}
               <div>
@@ -321,14 +328,15 @@ export default function ATSPage() {
                   Resume (PDF or DOCX)
                 </label>
                 <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center cursor-pointer hover:border-purple-300 hover:bg-purple-50/30 transition"
+                  onClick={() => !limitReached && fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-xl p-6 text-center transition ${limitReached ? "border-red-200 bg-red-50/30 cursor-not-allowed" : "border-gray-200 cursor-pointer hover:border-purple-300 hover:bg-purple-50/30"}`}
                 >
                   <input
                     ref={fileInputRef}
                     type="file"
                     accept=".pdf,.docx"
                     className="hidden"
+                    disabled={limitReached}
                     onChange={(e) => setFile(e.target.files?.[0] || null)}
                   />
                   {file ? (
@@ -366,7 +374,8 @@ export default function ATSPage() {
                   value={jobTitle}
                   onChange={(e) => setJobTitle(e.target.value)}
                   placeholder="e.g. Software Engineer"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent transition"
+                  disabled={limitReached}
+                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent transition ${limitReached ? "border-red-200 bg-red-50/30 cursor-not-allowed" : "border-gray-200"}`}
                 />
               </div>
 
@@ -380,7 +389,8 @@ export default function ATSPage() {
                   onChange={(e) => setJobDescription(e.target.value)}
                   placeholder="Paste the full job description here..."
                   rows={6}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent transition resize-none"
+                  disabled={limitReached}
+                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent transition resize-none ${limitReached ? "border-red-200 bg-red-50/30 cursor-not-allowed" : "border-gray-200"}`}
                 />
               </div>
 
