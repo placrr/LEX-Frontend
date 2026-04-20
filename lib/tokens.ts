@@ -21,7 +21,7 @@ export function generateAccessToken(
   return jwt.sign(
     { userId, email, plan, role },
     process.env.ACCESS_SECRET!,
-    { expiresIn: "15m" }
+    { expiresIn: "1h" }
   )
 }
 

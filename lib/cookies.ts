@@ -13,7 +13,7 @@ export async function setAuthCookies(
     secure: isProduction,
     sameSite: "strict",
     path: "/",
-    maxAge: 60 * 15, // 15 minutes
+    maxAge: 60 * 60, // 1 hour
   })
 
   cookieStore.set("refreshToken", refreshToken, {
