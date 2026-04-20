@@ -38,6 +38,7 @@ export default function Navbar({ user }: NavbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openUserMenu, setOpenUserMenu] = useState(false);
   const [navigating, setNavigating] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [featuresOpen, setFeaturesOpen] = useState(false);
   const [mobileFeatures, setMobileFeatures] = useState(false);
   const featuresRef = useRef<HTMLDivElement>(null);
@@ -76,9 +77,11 @@ export default function Navbar({ user }: NavbarProps) {
   }
 
   async function handleLogout() {
-    const logout = fetch("/api/auth/logout", { method: "POST" });
+    setLoggingOut(true);
+    setOpenUserMenu(false);
+    setIsMobileMenuOpen(false);
+    await fetch("/api/auth/logout", { method: "POST" });
     router.push("/");
-    await logout;
     router.refresh();
   }
 
@@ -162,16 +165,26 @@ export default function Navbar({ user }: NavbarProps) {
               }
 
               return (
-                <Link
+                <button
                   key={item.label}
-                  href={item.href}
+                  onClick={() => {
+                    const hash = item.href.includes("#") ? item.href.split("#")[1] : null;
+                    if (hash && pathname === "/") {
+                      const el = document.getElementById(hash);
+                      if (el) {
+                        el.scrollIntoView({ behavior: "smooth", block: "start" });
+                        return;
+                      }
+                    }
+                    router.push(item.href);
+                  }}
                   onMouseEnter={() => setHovered(item.label)}
                   onMouseLeave={() => setHovered(null)}
                   className="bg-white rounded-full px-6 py-2 text-gray-500 text-sm font-medium shadow-sm cursor-pointer"
                   style={style}
                 >
                   {item.label}
-                </Link>
+                </button>
               );
             })}
           </div>
@@ -244,9 +257,10 @@ export default function Navbar({ user }: NavbarProps) {
 
                       <button
                         onClick={handleLogout}
-                        className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-gray-100 rounded-lg cursor-pointer"
+                        disabled={loggingOut}
+                        className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-gray-100 rounded-lg cursor-pointer flex items-center gap-2 disabled:opacity-50"
                       >
-                        Logout
+                        {loggingOut ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Logging out...</> : "Logout"}
                       </button>
 
                     </motion.div>
@@ -398,14 +412,23 @@ export default function Navbar({ user }: NavbarProps) {
                   }
 
                   return (
-                    <Link
+                    <button
                       key={item.label}
-                      href={item.href}
-                      className="text-2xl font-medium text-gray-900 hover:text-gray-600 cursor-pointer"
-                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="text-2xl font-medium text-gray-900 hover:text-gray-600 cursor-pointer text-left"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        const hash = item.href.includes("#") ? item.href.split("#")[1] : null;
+                        if (hash && pathname === "/") {
+                          setTimeout(() => {
+                            document.getElementById(hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                          }, 300);
+                          return;
+                        }
+                        router.push(item.href);
+                      }}
                     >
                       {item.label}
-                    </Link>
+                    </button>
                   );
                 })}
 
@@ -449,9 +472,10 @@ export default function Navbar({ user }: NavbarProps) {
 
                     <button
                       onClick={handleLogout}
-                      className="w-full bg-black text-white px-6 py-3 rounded-full text-base font-medium hover:bg-gray-800 transition cursor-pointer"
+                      disabled={loggingOut}
+                      className="w-full bg-black text-white px-6 py-3 rounded-full text-base font-medium hover:bg-gray-800 transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
                     >
-                      Logout
+                      {loggingOut ? <><Loader2 className="w-4 h-4 animate-spin" /> Logging out...</> : "Logout"}
                     </button>
 
                   </div>

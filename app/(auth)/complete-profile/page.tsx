@@ -190,8 +190,8 @@ export default function CompleteProfilePage() {
         </form>
 
         <div className="text-center mt-5">
-          <Link href="/" className="text-xs text-gray-400 hover:text-gray-600 transition">
-            Back to home
+          <Link href="/" className="text-sm font-semibold text-gray-900 hover:text-purple-600 transition inline-flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full">
+            &larr; Back to home
           </Link>
         </div>
       </motion.div>

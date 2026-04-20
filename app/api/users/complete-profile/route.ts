@@ -75,8 +75,8 @@ if (!Number.isInteger(year) || year < 1 || year > 4) {
       { ex: 1800 }
     )
 
-    // 🔹 Send OTP email (await so client knows email was sent before routing)
-    await sendOTPEmail(email, otp)
+    // Send OTP email in background — don't block the response
+    sendOTPEmail(email, otp).catch(() => {})
 
     return NextResponse.json({
       success: true,

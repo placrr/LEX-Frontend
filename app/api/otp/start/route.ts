@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       { ex: 1800 }
     )
 
-    await sendOTPEmail(email, otp)
+    sendOTPEmail(email, otp).catch(() => {})
 
     return NextResponse.json({ success: true })
   } catch {
