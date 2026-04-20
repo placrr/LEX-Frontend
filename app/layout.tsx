@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { Toaster } from "sonner";
@@ -30,7 +31,16 @@ export default function RootLayout({
       <body
         className={`${geist.variable} ${geistMono.variable} font-sans antialiased`}
       >
-        <NavbarWrapper />
+        <Suspense fallback={
+          <nav className="sticky top-0 z-50 bg-transparent">
+            <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+              <div className="text-2xl font-semibold text-gray-900 bg-white rounded-full px-5 py-2 shadow-sm">Placr.</div>
+              <div className="h-10 w-32 bg-gray-100 rounded-full animate-pulse" />
+            </div>
+          </nav>
+        }>
+          <NavbarWrapper />
+        </Suspense>
 
         {children}
 
