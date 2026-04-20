@@ -193,13 +193,16 @@ export default function Navbar({ user }: NavbarProps) {
           <div className="hidden md:flex items-center gap-3">
 
             {/* India flag */}
-            <div className="bg-white rounded-full p-1.5 shadow-sm flex items-center justify-center overflow-hidden">
-              <svg width="22" height="22" viewBox="0 0 900 600" className="rounded-full">
-                <rect width="900" height="200" fill="#FF9933"/>
-                <rect y="200" width="900" height="200" fill="#FFFFFF"/>
-                <rect y="400" width="900" height="200" fill="#138808"/>
-                <circle cx="450" cy="300" r="60" fill="none" stroke="#000080" strokeWidth="4"/>
-                <circle cx="450" cy="300" r="8" fill="#000080"/>
+            <div className="w-9 h-9 rounded-full shadow-sm overflow-hidden flex items-center justify-center">
+              <svg width="36" height="36" viewBox="0 0 36 36">
+                <clipPath id="flag-circle"><circle cx="18" cy="18" r="18"/></clipPath>
+                <g clipPath="url(#flag-circle)">
+                  <rect width="36" height="12" fill="#FF9933"/>
+                  <rect y="12" width="36" height="12" fill="#FFFFFF"/>
+                  <rect y="24" width="36" height="12" fill="#138808"/>
+                  <circle cx="18" cy="18" r="4" fill="none" stroke="#000080" strokeWidth="0.8"/>
+                  <circle cx="18" cy="18" r="0.8" fill="#000080"/>
+                </g>
               </svg>
             </div>
 
