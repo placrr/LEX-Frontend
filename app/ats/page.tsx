@@ -441,7 +441,7 @@ export default function ATSPage() {
                   No reports yet. Analyze a resume to get started.
                 </p>
               ) : (
-                <div className="space-y-3 max-h-[480px] overflow-y-auto">
+                <div className="space-y-3 max-h-[480px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-[4px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200 [&::-webkit-scrollbar-track]:bg-transparent hover:[&::-webkit-scrollbar-thumb]:bg-gray-300">
                   {reports.map((report) => (
                     <button
                       key={report.id}
