@@ -161,7 +161,8 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
   }, [id])
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    const el = chatEndRef.current?.parentElement
+    if (el) el.scrollTop = el.scrollHeight
   }, [messages])
 
   // ─── Send chat ────────────────────────────────────────────────────────────
