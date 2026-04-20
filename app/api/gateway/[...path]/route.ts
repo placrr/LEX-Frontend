@@ -57,25 +57,46 @@ async function proxy(
   const cookieStore = await cookies()
   let token = cookieStore.get("accessToken")?.value
 
-  // If access token is missing, try refreshing it
+  // If access token is missing, try refreshing using the refresh token directly
   if (!token) {
-    try {
-      const refreshRes = await fetch(
-        `${request.nextUrl.origin}/api/auth/refresh`,
-        { method: "POST", headers: { cookie: request.headers.get("cookie") || "" } }
-      )
-      if (refreshRes.ok) {
-        // Read the new access token from the refresh response's set-cookie header
-        const setCookies = refreshRes.headers.getSetCookie?.() || []
-        for (const c of setCookies) {
-          const match = c.match(/accessToken=([^;]+)/)
-          if (match) {
-            token = match[1]
-            break
+    const refreshTokenValue = cookieStore.get("refreshToken")?.value
+    if (refreshTokenValue) {
+      try {
+        const { verifyRefreshToken, generateAccessToken, generateRefreshToken } = await import("@/lib/tokens")
+        const { prisma } = await import("@/lib/prisma")
+        const { setAuthCookies } = await import("@/lib/cookies")
+        const bcrypt = (await import("bcrypt")).default
+        const { randomUUID } = await import("node:crypto")
+
+        const payload = verifyRefreshToken(refreshTokenValue)
+        const tokenRecord = await prisma.refreshToken.findUnique({ where: { id: payload.tokenId } })
+
+        if (tokenRecord && tokenRecord.expiresAt > new Date()) {
+          const valid = await bcrypt.compare(refreshTokenValue, tokenRecord.tokenHash)
+          if (valid) {
+            const user = await prisma.user.findUnique({
+              where: { id: payload.userId },
+              select: { email: true, plan: true, role: true }
+            })
+            if (user) {
+              await prisma.refreshToken.delete({ where: { id: payload.tokenId } })
+              const newTokenId = randomUUID()
+              token = generateAccessToken(payload.userId, user.email, user.plan, user.role)
+              const newRefresh = generateRefreshToken(payload.userId, newTokenId)
+              await prisma.refreshToken.create({
+                data: {
+                  id: newTokenId,
+                  tokenHash: await bcrypt.hash(newRefresh, 8),
+                  userId: payload.userId,
+                  expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                }
+              })
+              await setAuthCookies(token, newRefresh)
+            }
           }
         }
-      }
-    } catch {}
+      } catch {}
+    }
   }
 
   if (!token) {
