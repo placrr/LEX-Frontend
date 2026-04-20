@@ -485,70 +485,45 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
 
                   {/* ── Keyword Map ── */}
                   <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                      <h2 className="text-base font-bold text-gray-900">Keyword Map</h2>
-                      <span className="text-xs text-gray-400">{report.keywordMatches!.length} keywords analyzed</span>
+                    <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+                      <h2 className="text-sm font-bold text-gray-900">Keyword Map</h2>
+                      <div className="flex items-center gap-3 text-[10px] text-gray-400">
+                        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-500" />Found</span>
+                        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" />Partial</span>
+                        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-yellow-500" />Weak</span>
+                        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-400" />Missing</span>
+                      </div>
                     </div>
 
-                    {/* Table header */}
-                    <div className="grid grid-cols-12 gap-2 px-6 py-2 bg-gray-50 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-                      <span className="col-span-5">Keyword</span>
-                      <span className="col-span-2 text-center">Type</span>
-                      <span className="col-span-3 text-center">Status</span>
-                      <span className="col-span-2 text-center">Match</span>
-                    </div>
-
-                    {/* Rows grouped: exact → partial → weak → missing */}
-                    <div className="divide-y divide-gray-50">
-                      {[...exact, ...partial, ...listedOnly, ...notFound].map((k, i) => (
-                        <div key={i} className="grid grid-cols-12 gap-2 px-6 py-2.5 items-center hover:bg-gray-50/50 transition">
-                          <div className="col-span-5 flex items-center gap-2">
-                            <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                    <div className="max-h-[320px] overflow-y-auto">
+                      <div className="flex flex-wrap gap-1.5 p-4">
+                        {[...exact, ...partial, ...listedOnly, ...notFound].map((k, i) => (
+                          <div key={i} className={`group relative inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition ${
+                            k.matchType === "exact" ? "bg-green-50 border-green-200 text-green-800" :
+                            k.matchType === "partial" ? "bg-blue-50 border-blue-200 text-blue-800" :
+                            k.matchType === "listed_only" ? "bg-yellow-50 border-yellow-200 text-yellow-800" :
+                            "bg-red-50 border-red-200 text-red-700"
+                          }`}>
+                            <span className={`w-1 h-1 rounded-full shrink-0 ${
                               k.matchType === "exact" ? "bg-green-500" :
                               k.matchType === "partial" ? "bg-blue-500" :
                               k.matchType === "listed_only" ? "bg-yellow-500" :
                               "bg-red-400"
                             }`} />
-                            <span className="text-[13px] font-medium text-gray-900 truncate">{k.keyword}</span>
-                          </div>
-                          <div className="col-span-2 text-center">
-                            <span className={`text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded ${
-                              k.requirement === "required" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-400"
-                            }`}>{k.requirement === "required" ? "REQ" : "PREF"}</span>
-                          </div>
-                          <div className="col-span-3 text-center">
-                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${
-                              k.matchType === "exact" ? "bg-green-100 text-green-700" :
-                              k.matchType === "partial" ? "bg-blue-100 text-blue-700" :
-                              k.matchType === "listed_only" ? "bg-yellow-100 text-yellow-700" :
-                              "bg-red-100 text-red-600"
-                            }`}>
-                              {k.matchType === "exact" && <CheckCircle2 className="w-2.5 h-2.5" />}
-                              {k.matchType === "partial" && <Search className="w-2.5 h-2.5" />}
-                              {k.matchType === "listed_only" && <AlertTriangle className="w-2.5 h-2.5" />}
-                              {k.matchType === "not_found" && <X className="w-2.5 h-2.5" />}
-                              {k.matchType === "exact" ? "Found" : k.matchType === "partial" ? "Partial" : k.matchType === "listed_only" ? "Weak" : "Missing"}
-                            </span>
-                          </div>
-                          <div className="col-span-2 text-center">
-                            {k.matchType === "not_found" ? (
-                              <a href={`https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free+course`} target="_blank" rel="noopener noreferrer" className="text-[10px] font-medium text-blue-500 hover:text-blue-700 flex items-center justify-center gap-0.5">
-                                Learn <ExternalLink className="w-2.5 h-2.5" />
+                            {k.keyword}
+                            {k.requirement === "required" && <span className="text-[8px] font-bold bg-gray-900 text-white px-1 rounded">R</span>}
+                            {k.matchType === "not_found" && (
+                              <a href={`https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free+course`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">
+                                <ExternalLink className="w-2.5 h-2.5" />
                               </a>
-                            ) : (
-                              <div className="flex justify-center">
-                                <div className="w-8 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                  <div className={`h-full rounded-full ${
-                                    k.matchType === "exact" ? "bg-green-500" :
-                                    k.matchType === "partial" ? "bg-blue-500" :
-                                    "bg-yellow-500"
-                                  }`} style={{ width: `${k.matchWeight * 100}%` }} />
-                                </div>
-                              </div>
                             )}
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="px-5 py-2 border-t border-gray-50 bg-gray-50/50 text-[10px] text-gray-400">
+                      {report.keywordMatches!.length} keywords · {exact.length} found · {partial.length} partial · {listedOnly.length} weak · {notFound.length} missing
                     </div>
                   </div>
 
