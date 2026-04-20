@@ -74,12 +74,14 @@ export default function ATSPage() {
 
   const [reports, setReports] = useState<ReportSummary[]>([])
   const [loadingReports, setLoadingReports] = useState(true)
+  const hasLoaded = useRef(false)
   const [pollingIds, setPollingIds] = useState<Set<string>>(new Set())
   const [usage, setUsage] = useState<UsageRes | null>(null)
 
   // ─── Load report history ────────────────────────────────────────────────────
 
-  const loadReports = useCallback(async () => {
+  const loadReports = useCallback(async (showLoading = true) => {
+    if (showLoading && !hasLoaded.current) setLoadingReports(true)
     try {
       const [reportsRes, usageRes] = await Promise.all([
         fetch(`${API.scoreList}?page=1&limit=20`),
@@ -105,6 +107,7 @@ export default function ATSPage() {
       // silent
     } finally {
       setLoadingReports(false)
+      hasLoaded.current = true
     }
   }, [])
 
@@ -419,7 +422,7 @@ export default function ATSPage() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-900">Reports</h2>
-                <button onClick={loadReports} className="text-gray-400 hover:text-gray-600 transition">
+                <button onClick={() => loadReports(false)} className="text-gray-400 hover:text-gray-600 transition">
                   <RefreshCw className="w-4 h-4" />
                 </button>
               </div>

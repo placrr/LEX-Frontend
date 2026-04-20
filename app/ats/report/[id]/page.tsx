@@ -100,14 +100,12 @@ function dimensionBar(label: string, value: number | null) {
     "bg-red-500"
 
   return (
-    <div key={label} className="space-y-1">
-      <div className="flex justify-between text-xs">
-        <span className="text-gray-600">{label}</span>
-        <span className="font-medium text-gray-900">{value}</span>
-      </div>
-      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+    <div key={label} className="flex items-center gap-3">
+      <span className="text-xs text-gray-600 w-24 sm:w-28 shrink-0">{label}</span>
+      <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
         <div className={`h-full rounded-full ${color} transition-all duration-500`} style={{ width: `${pct}%` }} />
       </div>
+      <span className="text-xs font-bold text-gray-900 w-8 text-right">{value}</span>
     </div>
   )
 }
