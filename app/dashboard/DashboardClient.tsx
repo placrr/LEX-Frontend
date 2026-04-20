@@ -89,30 +89,42 @@ export default function DashboardClient({ user, resumes, recentReports, stats }:
       <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
 
         {/* ── Header ── */}
-        <motion.div {...fadeUp} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-              Welcome back, {user.name.split(" ")[0]}
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              {user.email} &middot; {user.rollNo} &middot; Year {user.year}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-full shadow-sm ${
-              user.plan === "PRO"
-                ? "bg-gradient-to-r from-purple-600 to-pink-500 text-white"
-                : "bg-gradient-to-r from-gray-800 to-gray-900 text-white"
-            }`}>
-              {user.plan === "PRO" && <Crown className="w-3 h-3" />}
-              {user.plan} Plan
-            </span>
-            <button
-              onClick={handleLogout}
-              className="text-xs font-medium text-red-500 hover:text-white hover:bg-red-500 border border-red-200 hover:border-red-500 px-3 py-1.5 rounded-full transition-all"
-            >
-              Logout
-            </button>
+        <motion.div {...fadeUp} className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8 mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              {/* Avatar */}
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-200 shrink-0">
+                <span className="text-white text-xl font-bold">{user.name.charAt(0)}</span>
+              </div>
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+                  Welcome back, {user.name.split(" ")[0]}
+                </h1>
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
+                  <span className="text-sm text-gray-500">{user.email}</span>
+                  <span className="text-gray-300 hidden sm:inline">&middot;</span>
+                  <span className="text-sm text-gray-400">{user.rollNo}</span>
+                  <span className="text-gray-300 hidden sm:inline">&middot;</span>
+                  <span className="text-sm text-gray-400">Year {user.year}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-full ${
+                user.plan === "PRO"
+                  ? "bg-gradient-to-r from-purple-600 to-pink-500 text-white shadow-md shadow-purple-200"
+                  : "bg-gray-900 text-white"
+              }`}>
+                {user.plan === "PRO" && <Crown className="w-3.5 h-3.5" />}
+                {user.plan}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="text-xs font-semibold text-red-500 hover:text-white hover:bg-red-500 border border-red-200 hover:border-red-500 px-4 py-2 rounded-full transition-all"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </motion.div>
 
