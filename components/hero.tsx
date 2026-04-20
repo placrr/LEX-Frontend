@@ -5,15 +5,15 @@ import { ArrowRight, FileSearch, Mic, Briefcase } from "lucide-react"
 import Link from "next/link"
 
 const floatingTags = [
-  { label: "ATS Score: 87%", x: "8%", y: "18%", delay: 0.6 },
-  { label: "Keywords Matched", x: "78%", y: "12%", delay: 0.8 },
-  { label: "Resume Optimized", x: "72%", y: "72%", delay: 1.0 },
-  { label: "Interview Ready", x: "5%", y: "68%", delay: 1.2 },
+  { label: "ATS Score: 87%", x: "10%", y: "20%", delay: 0.6 },
+  { label: "Keywords Matched", x: "70%", y: "14%", delay: 0.8 },
+  { label: "Resume Optimized", x: "68%", y: "70%", delay: 1.0 },
+  { label: "Interview Ready", x: "8%", y: "66%", delay: 1.2 },
 ]
 
 export default function Hero({ loggedIn = false }: { loggedIn?: boolean }) {
   return (
-    <section className="relative overflow-hidden pt-28 pb-20 md:pt-36 md:pb-28">
+    <section className="relative overflow-clip pt-28 pb-20 md:pt-36 md:pb-28">
       {/* Background gradient orbs */}
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-purple-200/40 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-orange-200/30 rounded-full blur-[100px] pointer-events-none" />
@@ -108,7 +108,7 @@ export default function Hero({ loggedIn = false }: { loggedIn?: boolean }) {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: tag.delay, duration: 0.4, type: "spring" }}
-              className="absolute bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full px-3 py-1.5 text-[11px] font-medium text-gray-600 shadow-sm"
+              className="absolute whitespace-nowrap bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full px-3 py-1.5 text-[11px] font-medium text-gray-600 shadow-sm"
               style={{ left: tag.x, top: tag.y }}
             >
               {tag.label}
