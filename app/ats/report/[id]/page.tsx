@@ -484,46 +484,85 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                   </div>
 
                   {/* ── Keyword Map ── */}
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                    <div className="flex items-center justify-between mb-4">
                       <h2 className="text-sm font-bold text-gray-900">Keyword Map</h2>
-                      <div className="flex items-center gap-3 text-[10px] text-gray-400">
-                        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-500" />Found</span>
-                        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" />Partial</span>
-                        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-yellow-500" />Weak</span>
-                        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-400" />Missing</span>
-                      </div>
+                      <span className="text-[11px] text-gray-400">{report.keywordMatches!.length} keywords</span>
                     </div>
 
-                    <div className="max-h-[320px] overflow-y-auto">
-                      <div className="flex flex-wrap gap-1.5 p-4">
-                        {[...exact, ...partial, ...listedOnly, ...notFound].map((k, i) => (
-                          <div key={i} className={`group relative inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition ${
-                            k.matchType === "exact" ? "bg-green-50 border-green-200 text-green-800" :
-                            k.matchType === "partial" ? "bg-blue-50 border-blue-200 text-blue-800" :
-                            k.matchType === "listed_only" ? "bg-yellow-50 border-yellow-200 text-yellow-800" :
-                            "bg-red-50 border-red-200 text-red-700"
-                          }`}>
-                            <span className={`w-1 h-1 rounded-full shrink-0 ${
-                              k.matchType === "exact" ? "bg-green-500" :
-                              k.matchType === "partial" ? "bg-blue-500" :
-                              k.matchType === "listed_only" ? "bg-yellow-500" :
-                              "bg-red-400"
-                            }`} />
-                            {k.keyword}
-                            {k.requirement === "required" && <span className="text-[8px] font-bold bg-gray-900 text-white px-1 rounded">R</span>}
-                            {k.matchType === "not_found" && (
-                              <a href={`https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free+course`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">
-                                <ExternalLink className="w-2.5 h-2.5" />
-                              </a>
-                            )}
+                    <div className="space-y-4">
+                      {/* Found */}
+                      {exact.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-1.5 mb-2">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                            <span className="text-[11px] font-semibold text-green-700">Found in Resume ({exact.length})</span>
                           </div>
-                        ))}
-                      </div>
-                    </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {exact.map((k, i) => (
+                              <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-800 text-[11px] font-medium rounded-md border border-green-200">
+                                {k.keyword}
+                                {k.requirement === "required" && <span className="text-[7px] font-black bg-green-700 text-white px-1 rounded leading-tight">R</span>}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
-                    <div className="px-5 py-2 border-t border-gray-50 bg-gray-50/50 text-[10px] text-gray-400">
-                      {report.keywordMatches!.length} keywords · {exact.length} found · {partial.length} partial · {listedOnly.length} weak · {notFound.length} missing
+                      {/* Partial */}
+                      {partial.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-1.5 mb-2">
+                            <Search className="w-3.5 h-3.5 text-blue-500" />
+                            <span className="text-[11px] font-semibold text-blue-700">Partial Match ({partial.length})</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {partial.map((k, i) => (
+                              <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-800 text-[11px] font-medium rounded-md border border-blue-200">
+                                {k.keyword}
+                                {k.requirement === "required" && <span className="text-[7px] font-black bg-blue-700 text-white px-1 rounded leading-tight">R</span>}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Weak */}
+                      {listedOnly.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-1.5 mb-2">
+                            <AlertTriangle className="w-3.5 h-3.5 text-yellow-500" />
+                            <span className="text-[11px] font-semibold text-yellow-700">Listed But No Proof ({listedOnly.length})</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {listedOnly.map((k, i) => (
+                              <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-yellow-50 text-yellow-800 text-[11px] font-medium rounded-md border border-yellow-200">
+                                {k.keyword}
+                                {k.requirement === "required" && <span className="text-[7px] font-black bg-yellow-700 text-white px-1 rounded leading-tight">R</span>}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Missing */}
+                      {notFound.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-1.5 mb-2">
+                            <X className="w-3.5 h-3.5 text-red-500" />
+                            <span className="text-[11px] font-semibold text-red-700">Missing from Resume ({notFound.length})</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {notFound.map((k, i) => (
+                              <a key={i} href={`https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free+course`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 text-red-700 text-[11px] font-medium rounded-md border border-red-200 hover:bg-red-100 transition">
+                                {k.keyword}
+                                {k.requirement === "required" && <span className="text-[7px] font-black bg-red-700 text-white px-1 rounded leading-tight">R</span>}
+                                <ExternalLink className="w-2.5 h-2.5 text-red-400" />
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
