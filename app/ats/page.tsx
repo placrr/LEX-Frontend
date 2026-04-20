@@ -148,7 +148,7 @@ export default function ATSPage() {
           return next
         })
       }
-    }, 3000)
+    }, 6000)
 
     return () => clearInterval(interval)
   }, [pollingIds])
