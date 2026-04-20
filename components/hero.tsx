@@ -1,14 +1,11 @@
-"use client"
-
-import { motion } from "framer-motion"
 import { ArrowRight, FileSearch, Mic, Briefcase } from "lucide-react"
 import Link from "next/link"
 
 const floatingTags = [
-  { label: "ATS Score: 87%", x: "10%", y: "20%", delay: 0.6 },
-  { label: "Keywords Matched", x: "70%", y: "14%", delay: 0.8 },
-  { label: "Resume Optimized", x: "68%", y: "70%", delay: 1.0 },
-  { label: "Interview Ready", x: "8%", y: "66%", delay: 1.2 },
+  { label: "ATS Score: 87%", x: "10%", y: "20%", delay: "0.6s" },
+  { label: "Keywords Matched", x: "70%", y: "14%", delay: "0.8s" },
+  { label: "Resume Optimized", x: "68%", y: "70%", delay: "1s" },
+  { label: "Interview Ready", x: "8%", y: "66%", delay: "1.2s" },
 ]
 
 export default function Hero({ loggedIn = false }: { loggedIn?: boolean }) {
@@ -20,50 +17,30 @@ export default function Hero({ loggedIn = false }: { loggedIn?: boolean }) {
 
       <div className="relative max-w-6xl mx-auto px-4">
         {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="flex justify-center mb-6"
-        >
+        <div className="flex justify-center mb-6 animate-[fadeUp_0.5s_ease_both]">
           <span className="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-1.5 text-xs font-medium text-gray-600 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             Built for KIIT Students
           </span>
-        </motion.div>
+        </div>
 
         {/* Heading */}
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-center text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-gray-900 leading-[1.08]"
-        >
+        <h1 className="text-center text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-gray-900 leading-[1.08] animate-[fadeUp_0.6s_0.1s_ease_both]">
           Your AI Career
           <br />
           <span className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 bg-clip-text text-transparent">
             Accelerator
           </span>
-        </motion.h1>
+        </h1>
 
         {/* Subheading */}
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.25 }}
-          className="mt-5 text-center text-gray-500 text-base md:text-lg max-w-xl mx-auto leading-relaxed"
-        >
+        <p className="mt-5 text-center text-gray-500 text-base md:text-lg max-w-xl mx-auto leading-relaxed animate-[fadeUp_0.5s_0.25s_ease_both]">
           ATS resume scoring, AI mock interviews, and smart job matching
           — all in one place. Land your dream role faster.
-        </motion.p>
+        </p>
 
         {/* CTA Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3"
-        >
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 animate-[fadeUp_0.5s_0.4s_ease_both]">
           <Link
             href="/ats"
             className="bg-gray-900 hover:bg-gray-800 text-white px-7 py-3.5 rounded-full text-sm font-medium shadow-lg shadow-gray-900/20 transition flex items-center gap-2"
@@ -76,15 +53,10 @@ export default function Hero({ loggedIn = false }: { loggedIn?: boolean }) {
           >
             {loggedIn ? "Go to Dashboard" : "Sign Up with KIIT Email"}
           </Link>
-        </motion.div>
+        </div>
 
         {/* Feature pills */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-          className="mt-12 flex flex-wrap items-center justify-center gap-3"
-        >
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-3 animate-[fadeUp_0.5s_0.6s_ease_both]">
           {[
             { icon: FileSearch, label: "Resume ATS Checker", color: "text-purple-600 bg-purple-50 border-purple-200" },
             { icon: Mic, label: "AI Interview Prep", color: "text-blue-600 bg-blue-50 border-blue-200" },
@@ -98,21 +70,18 @@ export default function Hero({ loggedIn = false }: { loggedIn?: boolean }) {
               {f.label}
             </span>
           ))}
-        </motion.div>
+        </div>
 
         {/* Floating tags — decorative */}
         <div className="hidden lg:block relative h-0">
           {floatingTags.map((tag) => (
-            <motion.div
+            <div
               key={tag.label}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: tag.delay, duration: 0.4, type: "spring" }}
-              className="absolute whitespace-nowrap bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full px-3 py-1.5 text-[11px] font-medium text-gray-600 shadow-sm"
-              style={{ left: tag.x, top: tag.y }}
+              className="absolute whitespace-nowrap bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full px-3 py-1.5 text-[11px] font-medium text-gray-600 shadow-sm animate-[fadeIn_0.4s_ease_both]"
+              style={{ left: tag.x, top: tag.y, animationDelay: tag.delay }}
             >
               {tag.label}
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
