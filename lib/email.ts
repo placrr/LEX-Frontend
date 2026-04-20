@@ -111,11 +111,18 @@ function otpHtml(otp: string) {
 }
 
 export async function sendOTPEmail(to: string, otp: string) {
+  // Thread all OTPs for the same email into one conversation
+  const threadId = `<placr-otp-${to.replace(/[^a-z0-9]/gi, "")}@placr.app>`
+
   await transporter.sendMail({
     from: `"Placr" <${process.env.EMAIL_USER}>`,
     to,
     subject: "Your Placr Verification Code",
     text: `Your Placr verification code is ${otp}. It expires in 5 minutes. If you didn't request this, ignore this email.`,
     html: otpHtml(otp),
+    headers: {
+      "References": threadId,
+      "In-Reply-To": threadId,
+    },
   })
 }
