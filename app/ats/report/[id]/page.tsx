@@ -276,7 +276,13 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
           )}
         </div>
 
-        {/* ── Tabs ── */}
+        {/* ── Layout: Tabs + Chat side by side on desktop ── */}
+        <div className="flex gap-6">
+
+        {/* Left: Tab content */}
+        <div className="flex-1 min-w-0">
+
+        {/* Tabs */}
         <div className="flex gap-1 bg-white rounded-2xl shadow-sm border border-gray-100 p-1.5 mb-6">
           {([
             { key: "score", label: "Score Breakdown", icon: TrendingUp },
@@ -598,95 +604,101 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
           </div>
         )}
 
-      </div>
+        </div>{/* end left: tab content */}
 
-      {/* ── Floating Chat Button ── */}
-      <button
-        onClick={() => setChatOpen(!chatOpen)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-gray-900 hover:bg-gray-800 text-white rounded-full shadow-xl shadow-gray-900/30 flex items-center justify-center transition-all z-50 hover:scale-105"
-      >
-        {chatOpen ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
-        {messages.length > 0 && !chatOpen && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-            {messages.length}
-          </span>
-        )}
-      </button>
-
-      {/* ── Floating Chat Panel ── */}
-      {chatOpen && (
-        <div className="fixed bottom-24 right-4 sm:right-6 w-[calc(100%-2rem)] sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 animate-[fadeUp_0.2s_ease_both]" style={{ maxHeight: "min(500px, calc(100vh - 150px))" }}>
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <div className="flex items-center gap-2">
+        {/* Right: Chat sidebar — visible on lg+, floating on mobile */}
+        <div className="hidden lg:flex w-80 shrink-0">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col sticky top-24 w-full" style={{ height: "calc(100vh - 8rem)" }}>
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
               <div className="w-7 h-7 rounded-lg bg-purple-500 flex items-center justify-center">
                 <MessageCircle className="w-3.5 h-3.5 text-white" />
               </div>
-              <span className="text-sm font-semibold text-gray-900">Ask AI about this report</span>
+              <span className="text-sm font-semibold text-gray-900">Ask AI</span>
             </div>
-            <button onClick={() => setChatOpen(false)} className="text-gray-400 hover:text-gray-600 transition">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {messages.length === 0 && (
-              <div className="text-center py-8">
-                <p className="text-xs text-gray-400">Ask about gaps, improvements, what recruiters look for...</p>
-              </div>
-            )}
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`text-sm px-3 py-2.5 rounded-2xl max-w-[85%] ${
-                  msg.role === "USER" ? "bg-gray-900 text-white ml-auto" : "bg-gray-100 text-gray-800"
-                }`}
-              >
-                {msg.role === "USER" ? msg.message : (
-                  <div className="space-y-2 leading-relaxed [&_strong]:font-semibold">
-                    {msg.message.split(/\n{2,}/).map((block, i) => {
-                      const trimmed = block.trim()
-                      if (!trimmed) return null
-                      const listMatch = trimmed.match(/^(\d+)[.)]\s+(.+)/)
-                      if (listMatch) return <div key={i} className="flex gap-2"><span className="text-gray-400 shrink-0 font-medium">{listMatch[1]}.</span><span dangerouslySetInnerHTML={{ __html: formatInline(listMatch[2]) }} /></div>
-                      const bulletMatch = trimmed.match(/^[-•]\s+(.+)/)
-                      if (bulletMatch) return <div key={i} className="flex gap-2"><span className="text-gray-400 shrink-0">•</span><span dangerouslySetInnerHTML={{ __html: formatInline(bulletMatch[1]) }} /></div>
-                      return <p key={i} dangerouslySetInnerHTML={{ __html: formatInline(trimmed.replace(/\n/g, "<br/>")) }} />
-                    })}
-                  </div>
-                )}
-              </div>
-            ))}
-            {sending && (
-              <div className="bg-gray-100 text-gray-400 text-sm px-3 py-2.5 rounded-2xl w-fit">
-                <Loader2 className="w-3.5 h-3.5 animate-spin inline mr-1" /> Thinking...
-              </div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+              {messages.length === 0 && (
+                <div className="text-center py-8">
+                  <MessageCircle className="w-6 h-6 text-gray-200 mx-auto mb-2" />
+                  <p className="text-xs text-gray-400">Ask about gaps, how to improve, what recruiters look for...</p>
+                </div>
+              )}
+              {messages.map((msg) => (
+                <div key={msg.id} className={`text-sm px-3 py-2.5 rounded-2xl max-w-[95%] ${msg.role === "USER" ? "bg-gray-900 text-white ml-auto" : "bg-gray-100 text-gray-800"}`}>
+                  {msg.role === "USER" ? msg.message : (
+                    <div className="space-y-2 leading-relaxed [&_strong]:font-semibold">
+                      {msg.message.split(/\n{2,}/).map((block, i) => {
+                        const t = block.trim(); if (!t) return null
+                        const lm = t.match(/^(\d+)[.)]\s+(.+)/); if (lm) return <div key={i} className="flex gap-2"><span className="text-gray-400 shrink-0 font-medium">{lm[1]}.</span><span dangerouslySetInnerHTML={{ __html: formatInline(lm[2]) }} /></div>
+                        const bm = t.match(/^[-•]\s+(.+)/); if (bm) return <div key={i} className="flex gap-2"><span className="text-gray-400 shrink-0">•</span><span dangerouslySetInnerHTML={{ __html: formatInline(bm[1]) }} /></div>
+                        return <p key={i} dangerouslySetInnerHTML={{ __html: formatInline(t.replace(/\n/g, "<br/>")) }} />
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
+              {sending && <div className="bg-gray-100 text-gray-400 text-sm px-3 py-2.5 rounded-2xl w-fit"><Loader2 className="w-3.5 h-3.5 animate-spin inline mr-1" /> Thinking...</div>}
+              <div ref={chatEndRef} />
+            </div>
 
-          {/* Input */}
-          <div className="flex gap-2 p-3 border-t border-gray-100">
-            <input
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-              placeholder="Type a question..."
-              maxLength={2000}
-              className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 transition"
-            />
-            <Button
-              size="icon"
-              onClick={handleSend}
-              disabled={sending || !chatInput.trim()}
-              className="bg-gray-900 hover:bg-gray-800 text-white rounded-xl disabled:opacity-40 h-10 w-10"
-            >
-              <Send className="w-4 h-4" />
-            </Button>
+            <div className="flex gap-2 p-3 border-t border-gray-100">
+              <input value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()} placeholder="Type a question..." maxLength={2000} className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 transition" />
+              <Button size="icon" onClick={handleSend} disabled={sending || !chatInput.trim()} className="bg-gray-900 hover:bg-gray-800 text-white rounded-xl disabled:opacity-40 h-10 w-10"><Send className="w-4 h-4" /></Button>
+            </div>
           </div>
         </div>
-      )}
+
+        </div>{/* end flex layout */}
+
+      </div>
+
+      {/* Mobile: Floating chat button + panel (lg: hidden) */}
+      <div className="lg:hidden">
+        <button
+          onClick={() => setChatOpen(!chatOpen)}
+          className="fixed bottom-6 right-6 w-14 h-14 bg-gray-900 hover:bg-gray-800 text-white rounded-full shadow-xl shadow-gray-900/30 flex items-center justify-center transition-all z-50"
+        >
+          {chatOpen ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
+          {messages.length > 0 && !chatOpen && (
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{messages.length}</span>
+          )}
+        </button>
+
+        {chatOpen && (
+          <div className="fixed bottom-24 right-4 left-4 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 animate-[fadeUp_0.2s_ease_both]" style={{ maxHeight: "min(450px, calc(100vh - 150px))" }}>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-purple-500 flex items-center justify-center"><MessageCircle className="w-3.5 h-3.5 text-white" /></div>
+                <span className="text-sm font-semibold text-gray-900">Ask AI</span>
+              </div>
+              <button onClick={() => setChatOpen(false)} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+              {messages.length === 0 && <p className="text-xs text-gray-400 text-center py-6">Ask about gaps, improvements, what recruiters look for...</p>}
+              {messages.map((msg) => (
+                <div key={msg.id} className={`text-sm px-3 py-2.5 rounded-2xl max-w-[85%] ${msg.role === "USER" ? "bg-gray-900 text-white ml-auto" : "bg-gray-100 text-gray-800"}`}>
+                  {msg.role === "USER" ? msg.message : (
+                    <div className="space-y-2 leading-relaxed [&_strong]:font-semibold">
+                      {msg.message.split(/\n{2,}/).map((block, i) => {
+                        const t = block.trim(); if (!t) return null
+                        const lm = t.match(/^(\d+)[.)]\s+(.+)/); if (lm) return <div key={i} className="flex gap-2"><span className="text-gray-400 shrink-0 font-medium">{lm[1]}.</span><span dangerouslySetInnerHTML={{ __html: formatInline(lm[2]) }} /></div>
+                        const bm = t.match(/^[-•]\s+(.+)/); if (bm) return <div key={i} className="flex gap-2"><span className="text-gray-400 shrink-0">•</span><span dangerouslySetInnerHTML={{ __html: formatInline(bm[1]) }} /></div>
+                        return <p key={i} dangerouslySetInnerHTML={{ __html: formatInline(t.replace(/\n/g, "<br/>")) }} />
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
+              {sending && <div className="bg-gray-100 text-gray-400 text-sm px-3 py-2.5 rounded-2xl w-fit"><Loader2 className="w-3.5 h-3.5 animate-spin inline mr-1" /> Thinking...</div>}
+              <div ref={chatEndRef} />
+            </div>
+            <div className="flex gap-2 p-3 border-t border-gray-100">
+              <input value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()} placeholder="Type a question..." maxLength={2000} className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 transition" />
+              <Button size="icon" onClick={handleSend} disabled={sending || !chatInput.trim()} className="bg-gray-900 hover:bg-gray-800 text-white rounded-xl disabled:opacity-40 h-10 w-10"><Send className="w-4 h-4" /></Button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
