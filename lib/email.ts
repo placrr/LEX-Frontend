@@ -1,6 +1,12 @@
-import { Resend } from "resend"
+import nodemailer from "nodemailer"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+})
 
 function otpHtml(otp: string) {
   return `<!DOCTYPE html>
@@ -50,11 +56,11 @@ function otpHtml(otp: string) {
 }
 
 export async function sendOTPEmail(to: string, otp: string) {
-  await resend.emails.send({
-    from: "Placr <onboarding@resend.dev>",
+  await transporter.sendMail({
+    from: `"Placr" <${process.env.EMAIL_USER}>`,
     to,
     subject: "Your Placr Verification Code",
-    text: `Your Placr verification code is ${otp}. It expires in 5 minutes. If you didn't request this, ignore this email.`,
+    text: `Your Placr verification code is ${otp}. It expires in 5 minutes.`,
     html: otpHtml(otp),
   })
 }
