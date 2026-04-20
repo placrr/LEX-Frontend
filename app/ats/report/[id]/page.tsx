@@ -484,85 +484,66 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                   </div>
 
                   {/* ── Keyword Map ── */}
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-sm font-bold text-gray-900">Keyword Map</h2>
-                      <span className="text-[11px] text-gray-400">{report.keywordMatches!.length} keywords</span>
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    {/* Header with visual bar */}
+                    <div className="p-5 pb-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-sm font-bold text-gray-900">Keyword Map</h2>
+                        <span className="text-[11px] text-gray-400">{report.keywordMatches!.length} keywords from JD</span>
+                      </div>
+                      {/* Stacked bar */}
+                      <div className="flex h-3 rounded-full overflow-hidden">
+                        {exact.length > 0 && <div className="bg-green-500 transition-all" style={{ width: `${(exact.length / report.keywordMatches!.length) * 100}%` }} />}
+                        {partial.length > 0 && <div className="bg-blue-500 transition-all" style={{ width: `${(partial.length / report.keywordMatches!.length) * 100}%` }} />}
+                        {listedOnly.length > 0 && <div className="bg-yellow-400 transition-all" style={{ width: `${(listedOnly.length / report.keywordMatches!.length) * 100}%` }} />}
+                        {notFound.length > 0 && <div className="bg-red-400 transition-all" style={{ width: `${(notFound.length / report.keywordMatches!.length) * 100}%` }} />}
+                      </div>
+                      <div className="flex items-center gap-4 mt-2">
+                        {[
+                          { n: exact.length, label: "Found", color: "bg-green-500" },
+                          { n: partial.length, label: "Partial", color: "bg-blue-500" },
+                          { n: listedOnly.length, label: "Weak", color: "bg-yellow-400" },
+                          { n: notFound.length, label: "Missing", color: "bg-red-400" },
+                        ].filter(x => x.n > 0).map(x => (
+                          <span key={x.label} className="flex items-center gap-1 text-[10px] text-gray-500">
+                            <span className={`w-2 h-2 rounded-sm ${x.color}`} />{x.n} {x.label}
+                          </span>
+                        ))}
+                      </div>
                     </div>
 
-                    <div className="space-y-4">
-                      {/* Found */}
-                      {exact.length > 0 && (
-                        <div>
+                    {/* Grouped sections */}
+                    <div className="border-t border-gray-100">
+                      {[
+                        { items: exact, label: "Matched", icon: CheckCircle2, iconColor: "text-green-500", pillBg: "bg-green-500", pillText: "text-white" },
+                        { items: partial, label: "Partial", icon: Search, iconColor: "text-blue-500", pillBg: "bg-blue-100", pillText: "text-blue-700" },
+                        { items: listedOnly, label: "Needs Proof", icon: AlertTriangle, iconColor: "text-yellow-500", pillBg: "bg-yellow-100", pillText: "text-yellow-700" },
+                        { items: notFound, label: "Missing", icon: TrendingDown, iconColor: "text-red-500", pillBg: "bg-red-100", pillText: "text-red-700" },
+                      ].filter(g => g.items.length > 0).map((group) => (
+                        <div key={group.label} className="px-5 py-3 border-b border-gray-50 last:border-b-0">
                           <div className="flex items-center gap-1.5 mb-2">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                            <span className="text-[11px] font-semibold text-green-700">Found in Resume ({exact.length})</span>
+                            <group.icon className={`w-3.5 h-3.5 ${group.iconColor}`} />
+                            <span className="text-[11px] font-bold text-gray-700">{group.label}</span>
+                            <span className="text-[10px] text-gray-400 ml-auto">{group.items.length}</span>
                           </div>
                           <div className="flex flex-wrap gap-1.5">
-                            {exact.map((k, i) => (
-                              <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-800 text-[11px] font-medium rounded-md border border-green-200">
-                                {k.keyword}
-                                {k.requirement === "required" && <span className="text-[7px] font-black bg-green-700 text-white px-1 rounded leading-tight">R</span>}
-                              </span>
-                            ))}
+                            {group.items.map((k, i) => {
+                              const isLink = k.matchType === "not_found"
+                              const Tag = isLink ? "a" : "span"
+                              const linkProps = isLink ? { href: `https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free+course`, target: "_blank", rel: "noopener noreferrer" } : {}
+                              return (
+                                <Tag key={i} {...linkProps} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                                  k.matchType === "exact" ? `${group.pillBg} ${group.pillText}` : `${group.pillBg} ${group.pillText}`
+                                } ${isLink ? "hover:opacity-80 cursor-pointer" : ""}`}>
+                                  {k.keyword}
+                                  {k.requirement === "required" && <span className="w-1 h-1 rounded-full bg-current opacity-50" />}
+                                  {isLink && <ExternalLink className="w-2.5 h-2.5 opacity-60" />}
+                                </Tag>
+                              )
+                            })}
                           </div>
                         </div>
-                      )}
-
-                      {/* Partial */}
-                      {partial.length > 0 && (
-                        <div>
-                          <div className="flex items-center gap-1.5 mb-2">
-                            <Search className="w-3.5 h-3.5 text-blue-500" />
-                            <span className="text-[11px] font-semibold text-blue-700">Partial Match ({partial.length})</span>
-                          </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {partial.map((k, i) => (
-                              <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-800 text-[11px] font-medium rounded-md border border-blue-200">
-                                {k.keyword}
-                                {k.requirement === "required" && <span className="text-[7px] font-black bg-blue-700 text-white px-1 rounded leading-tight">R</span>}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Weak */}
-                      {listedOnly.length > 0 && (
-                        <div>
-                          <div className="flex items-center gap-1.5 mb-2">
-                            <AlertTriangle className="w-3.5 h-3.5 text-yellow-500" />
-                            <span className="text-[11px] font-semibold text-yellow-700">Listed But No Proof ({listedOnly.length})</span>
-                          </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {listedOnly.map((k, i) => (
-                              <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 bg-yellow-50 text-yellow-800 text-[11px] font-medium rounded-md border border-yellow-200">
-                                {k.keyword}
-                                {k.requirement === "required" && <span className="text-[7px] font-black bg-yellow-700 text-white px-1 rounded leading-tight">R</span>}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Missing */}
-                      {notFound.length > 0 && (
-                        <div>
-                          <div className="flex items-center gap-1.5 mb-2">
-                            <X className="w-3.5 h-3.5 text-red-500" />
-                            <span className="text-[11px] font-semibold text-red-700">Missing from Resume ({notFound.length})</span>
-                          </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {notFound.map((k, i) => (
-                              <a key={i} href={`https://www.google.com/search?q=learn+${encodeURIComponent(k.keyword)}+free+course`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 text-red-700 text-[11px] font-medium rounded-md border border-red-200 hover:bg-red-100 transition">
-                                {k.keyword}
-                                {k.requirement === "required" && <span className="text-[7px] font-black bg-red-700 text-white px-1 rounded leading-tight">R</span>}
-                                <ExternalLink className="w-2.5 h-2.5 text-red-400" />
-                              </a>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                      ))}
                     </div>
                   </div>
 
