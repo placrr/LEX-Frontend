@@ -3,9 +3,7 @@ import Link from "next/link"
 
 const floatingTags = [
   { label: "ATS Score: 87%", style: { left: "2%", top: "15%" }, delay: "0.6s" },
-  { label: "Interview Ready", style: { left: "5%", top: "45%" }, delay: "0.8s" },
   { label: "Keywords Matched", style: { right: "2%", top: "15%" }, delay: "1s" },
-  { label: "Resume Optimized", style: { right: "5%", top: "45%" }, delay: "1.2s" },
 ]
 
 export default function Hero({ loggedIn = false }: { loggedIn?: boolean }) {
