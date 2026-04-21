@@ -72,9 +72,11 @@ export default function ATSPage() {
   const [analyzing, setAnalyzing] = useState(false)
   const [error, setError] = useState("")
 
-  const [reports, setReports] = useState<ReportSummary[]>([])
-  const [loadingReports, setLoadingReports] = useState(true)
-  const hasLoaded = useRef(false)
+  // Try to restore cached reports instantly
+  const cachedReports = typeof window !== "undefined" ? (() => { try { return JSON.parse(sessionStorage.getItem("ats-reports") || "null") } catch { return null } })() : null
+  const [reports, setReports] = useState<ReportSummary[]>(cachedReports || [])
+  const [loadingReports, setLoadingReports] = useState(!cachedReports)
+  const hasLoaded = useRef(!!cachedReports)
   const [pollingIds, setPollingIds] = useState<Set<string>>(new Set())
   const [usage, setUsage] = useState<UsageRes | null>(null)
 
@@ -91,6 +93,7 @@ export default function ATSPage() {
       if (reportsRes.ok) {
         const data: PaginationRes = await reportsRes.json()
         setReports(data.reports)
+        try { sessionStorage.setItem("ats-reports", JSON.stringify(data.reports)) } catch {}
 
         const processing = data.reports
           .filter((r) => r.status === "PROCESSING")
@@ -481,9 +484,12 @@ export default function ATSPage() {
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           {report.status === "COMPLETED" && report.atsScore != null ? (
-                            <span className={`text-lg font-bold ${scoreColor(report.atsScore)}`}>
-                              {report.atsScore}%
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                              {report.atsScore >= 96 && <span className="text-[8px] font-black bg-yellow-400 text-yellow-900 px-1.5 py-0.5 rounded-full animate-pulse">TOP</span>}
+                              <span className={`text-lg font-bold ${scoreColor(report.atsScore)}`}>
+                                {report.atsScore}%
+                              </span>
+                            </div>
                           ) : report.status === "PROCESSING" ? (
                             <div className="flex items-center gap-2">
                               <div className="flex gap-1">
