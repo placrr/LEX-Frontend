@@ -72,11 +72,24 @@ export default function ATSPage() {
   const [analyzing, setAnalyzing] = useState(false)
   const [error, setError] = useState("")
 
-  // Try to restore cached reports instantly
-  const cachedReports = typeof window !== "undefined" ? (() => { try { return JSON.parse(sessionStorage.getItem("ats-reports") || "null") } catch { return null } })() : null
-  const [reports, setReports] = useState<ReportSummary[]>(cachedReports || [])
-  const [loadingReports, setLoadingReports] = useState(!cachedReports)
-  const hasLoaded = useRef(!!cachedReports)
+  const [reports, setReports] = useState<ReportSummary[]>([])
+  const [loadingReports, setLoadingReports] = useState(true)
+  const hasLoaded = useRef(false)
+
+  // Restore cached reports on mount (client only)
+  useEffect(() => {
+    try {
+      const cached = sessionStorage.getItem("ats-reports")
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setReports(parsed)
+          setLoadingReports(false)
+          hasLoaded.current = true
+        }
+      }
+    } catch {}
+  }, [])
   const [pollingIds, setPollingIds] = useState<Set<string>>(new Set())
   const [usage, setUsage] = useState<UsageRes | null>(null)
 
