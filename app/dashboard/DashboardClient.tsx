@@ -4,10 +4,11 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   FileSearch, BarChart3, TrendingUp, Trophy, FileText,
-  ArrowRight, ChevronRight, Loader2, Plus, Crown,
+  ArrowRight, ChevronRight, Loader2, Plus, Crown, Users,
 } from "lucide-react"
 import { toast } from "sonner"
 import { motion } from "framer-motion"
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from "recharts"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -49,6 +50,10 @@ interface Props {
     planLimit: number
     resumeCount: number
   }
+  scoreTrend: { score: number; date: string; title: string }[]
+  dimensionAvg: { keyword: number; semantic: number; skills: number; experience: number; education: number; format: number } | null
+  percentile: number
+  totalUsers: number
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -72,7 +77,7 @@ const fadeUp = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function DashboardClient({ user, resumes, recentReports, stats }: Props) {
+export default function DashboardClient({ user, resumes, recentReports, stats, scoreTrend, dimensionAvg, percentile, totalUsers }: Props) {
   const router = useRouter()
   const remaining = Math.max(0, stats.planLimit - stats.totalScans)
   const usagePct = Math.min(100, Math.round((stats.totalScans / stats.planLimit) * 100))
@@ -183,6 +188,86 @@ export default function DashboardClient({ user, resumes, recentReports, stats }:
             </div>
           )}
         </motion.div>
+
+        {/* ── Score Trend + Radar + Peer ── */}
+        {scoreTrend.length >= 2 && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+          >
+            {/* Score Trend Line Chart */}
+            <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base font-bold text-gray-900">Score Trend</h2>
+                {scoreTrend.length >= 2 && (
+                  <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                    scoreTrend[scoreTrend.length - 1].score > scoreTrend[0].score
+                      ? "bg-green-50 text-green-600"
+                      : scoreTrend[scoreTrend.length - 1].score < scoreTrend[0].score
+                      ? "bg-red-50 text-red-500"
+                      : "bg-gray-50 text-gray-500"
+                  }`}>
+                    {scoreTrend[scoreTrend.length - 1].score > scoreTrend[0].score ? "↑" : scoreTrend[scoreTrend.length - 1].score < scoreTrend[0].score ? "↓" : "→"}{" "}
+                    {scoreTrend[0].score}% → {scoreTrend[scoreTrend.length - 1].score}%
+                  </span>
+                )}
+              </div>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={scoreTrend.map(d => ({ ...d, date: new Date(d.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) }))}>
+                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
+                  <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} width={30} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", fontSize: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
+                    formatter={(value: number) => [`${value}%`, "Score"]}
+                    labelFormatter={(label) => label}
+                  />
+                  <Line type="monotone" dataKey="score" stroke="#7c3aed" strokeWidth={2.5} dot={{ r: 4, fill: "#7c3aed", stroke: "#fff", strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Right column: Radar + Peer */}
+            <div className="space-y-4">
+              {/* Radar Chart */}
+              {dimensionAvg && (
+                <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                  <h2 className="text-sm font-bold text-gray-900 mb-2">Skill Profile</h2>
+                  <ResponsiveContainer width="100%" height={180}>
+                    <RadarChart data={[
+                      { dim: "Keyword", val: dimensionAvg.keyword },
+                      { dim: "Semantic", val: dimensionAvg.semantic },
+                      { dim: "Skills", val: dimensionAvg.skills },
+                      { dim: "Experience", val: dimensionAvg.experience },
+                      { dim: "Education", val: dimensionAvg.education },
+                      { dim: "Format", val: dimensionAvg.format },
+                    ]}>
+                      <PolarGrid stroke="#e5e7eb" />
+                      <PolarAngleAxis dataKey="dim" tick={{ fontSize: 10, fill: "#6b7280" }} />
+                      <Radar dataKey="val" stroke="#7c3aed" fill="#7c3aed" fillOpacity={0.15} strokeWidth={2} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+
+              {/* Peer Comparison */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Users className="w-4 h-4 text-purple-500" />
+                  <h2 className="text-sm font-bold text-gray-900">Peer Ranking</h2>
+                </div>
+                <div className="text-center py-2">
+                  <div className="text-3xl font-black text-purple-600 tabular-nums">Top {Math.max(1, 100 - percentile)}%</div>
+                  <p className="text-xs text-gray-500 mt-1">out of {totalUsers} Placr users</p>
+                </div>
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden mt-3">
+                  <div className="h-full bg-purple-500 rounded-full" style={{ width: `${percentile}%` }} />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
 

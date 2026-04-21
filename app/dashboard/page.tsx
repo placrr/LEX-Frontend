@@ -73,6 +73,43 @@ export default async function DashboardPage() {
   const totalReports = await prisma.aTSReport.count({ where: { userId, status: { not: "FAILED" } } })
   const planLimit = user.plan === "PRO" ? 100 : user.plan === "FREE" ? 6 : 1000
 
+  // Score trend data — all completed reports ordered by date
+  const allCompleted = await prisma.aTSReport.findMany({
+    where: { userId, status: "COMPLETED" },
+    orderBy: { createdAt: "asc" },
+    select: {
+      atsScore: true,
+      createdAt: true,
+      jobTitle: true,
+      keywordMatchScore: true,
+      semanticScore: true,
+      skillsCoverageScore: true,
+      experienceScore: true,
+      educationScore: true,
+      formatScore: true,
+    },
+  })
+
+  // Dimension averages for radar chart
+  const dimAvg = allCompleted.length > 0 ? {
+    keyword: Math.round(allCompleted.reduce((s, r) => s + (r.keywordMatchScore ?? 0), 0) / allCompleted.length),
+    semantic: Math.round(allCompleted.reduce((s, r) => s + (r.semanticScore ?? 0), 0) / allCompleted.length),
+    skills: Math.round(allCompleted.reduce((s, r) => s + (r.skillsCoverageScore ?? 0), 0) / allCompleted.length),
+    experience: Math.round(allCompleted.reduce((s, r) => s + (r.experienceScore ?? 0), 0) / allCompleted.length),
+    education: Math.round(allCompleted.reduce((s, r) => s + (r.educationScore ?? 0), 0) / allCompleted.length),
+    format: Math.round(allCompleted.reduce((s, r) => s + (r.formatScore ?? 0), 0) / allCompleted.length),
+  } : null
+
+  // Peer comparison — what percentile is this user
+  const allUserAvgs = await prisma.aTSReport.groupBy({
+    by: ["userId"],
+    where: { status: "COMPLETED" },
+    _avg: { atsScore: true },
+  })
+  const userAvg = stats._avg.atsScore ?? 0
+  const usersBelow = allUserAvgs.filter(u => (u._avg.atsScore ?? 0) < userAvg).length
+  const percentile = allUserAvgs.length > 0 ? Math.round((usersBelow / allUserAvgs.length) * 100) : 0
+
   return (
     <DashboardClient
       user={{
@@ -112,6 +149,14 @@ export default async function DashboardPage() {
         planLimit,
         resumeCount: resumes.length,
       }}
+      scoreTrend={allCompleted.map(r => ({
+        score: r.atsScore,
+        date: r.createdAt.toISOString(),
+        title: r.jobTitle || "Analysis",
+      }))}
+      dimensionAvg={dimAvg}
+      percentile={percentile}
+      totalUsers={allUserAvgs.length}
     />
   )
 }
