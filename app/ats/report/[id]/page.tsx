@@ -6,7 +6,7 @@ import {
   ArrowLeft, Loader2, Send, X, MessageCircle,
   TrendingUp, TrendingDown, Lightbulb,
   Search, AlertTriangle, CheckCircle2,
-  Target, ExternalLink, BookOpen, Zap, GraduationCap,
+  Target, ExternalLink, BookOpen, Zap, GraduationCap, Wand2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -330,6 +330,26 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
               <span className="font-medium text-gray-700">Domain:</span> {report.domainMatch}
             </p>
           )}
+        </div>
+
+        {/* ── Next Steps CTA ── */}
+        <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 rounded-2xl p-4 sm:p-5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="text-white">
+            <p className="text-sm font-bold">
+              {report.atsScore != null && report.atsScore >= 80
+                ? "Great score! Tailor it further for even better results."
+                : report.atsScore != null && report.atsScore >= 50
+                ? "Good start! Tailor your resume to boost your score."
+                : "Your resume needs work. Let AI fix it for you."}
+            </p>
+            <p className="text-xs text-white/70 mt-0.5">AI rewrites your resume optimized for this exact JD</p>
+          </div>
+          <Link
+            href="/ats/tailor"
+            className="inline-flex items-center gap-2 bg-white text-purple-700 hover:bg-purple-50 px-5 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-purple-800/20 transition shrink-0"
+          >
+            <Wand2 className="w-4 h-4" /> Tailor My Resume
+          </Link>
         </div>
 
         {/* ── Layout: Tabs + Chat side by side on desktop ── */}
