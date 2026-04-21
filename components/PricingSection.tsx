@@ -14,7 +14,7 @@ const plans = [
     href: "/coming-soon",
     popular: false,
     features: [
-      "6 ATS resume scans",
+      "3 ATS resume scans",
       "Full 7-dimension scoring",
       "Keyword match analysis",
       "AI chat per report",

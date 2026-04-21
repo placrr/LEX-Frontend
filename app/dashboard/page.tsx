@@ -71,7 +71,7 @@ export default async function DashboardPage() {
   if (!user) redirect("/login")
 
   const totalReports = await prisma.aTSReport.count({ where: { userId, status: { not: "FAILED" } } })
-  const planLimit = user.plan === "PRO" ? 100 : user.plan === "FREE" ? 6 : 1000
+  const planLimit = user.plan === "PRO" ? 100 : user.plan === "FREE" ? 3 : 1000
 
   // Score trend data — all completed reports ordered by date
   const allCompleted = await prisma.aTSReport.findMany({
