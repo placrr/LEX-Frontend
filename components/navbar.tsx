@@ -1,11 +1,26 @@
 "use client";
 
-import { Menu, X, ChevronDown } from "lucide-react";
-import React, { useState } from "react";
+// Navbar.tsx
+import React, { useState, useEffect, useRef } from "react";
+import clsx from "clsx";
+
+import { Menu, X, ChevronDown, ChevronRight, Loader2, FileSearch, Mic, Briefcase } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+
+const featureItems = [
+  { label: "ATS Resume Checker", href: "/ats", icon: FileSearch, description: "Optimize your resume for ATS" },
+  { label: "AI Interview Prep", href: "/interview", icon: Mic, description: "Practice with AI mock interviews" },
+  { label: "Job Informer", href: "/jobs", icon: Briefcase, description: "Personalized job recommendations" },
+];
+
+const navItems = [
+  { label: "Features", href: "#", color: "#F86510", textOnHover: "#ffffff", hasDropdown: true },
+  { label: "Pricing", href: "/#pricing", color: "#BBE96A", textOnHover: "#000000" },
+  { label: "About", href: "/#about", color: "#89CCF9", textOnHover: "#ffffff" },
+];
 
 interface NavbarUser {
   name: string | null;
@@ -22,24 +37,53 @@ export default function Navbar({ user }: NavbarProps) {
   const [hovered, setHovered] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openUserMenu, setOpenUserMenu] = useState(false);
+  const [navigating, setNavigating] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [featuresOpen, setFeaturesOpen] = useState(false);
+  const [mobileFeatures, setMobileFeatures] = useState(false);
+  const featuresRef = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
+  const pathname = usePathname();
 
-  async function handleLogout() {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-      router.push("/");
-      router.refresh();
-    } catch (err) {
-      console.error("Logout failed", err);
+  // Reset spinner when navigation completes (root layout persists across routes)
+  useEffect(() => {
+    setNavigating(false);
+    setFeaturesOpen(false);
+    setMobileFeatures(false);
+  }, [pathname]);
+
+  // Close features dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (featuresRef.current && !featuresRef.current.contains(e.target as Node)) {
+        setFeaturesOpen(false);
+      }
     }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Hide navbar on auth routes (works for client-side navigation too)
+  const hiddenRoutes = ["/login", "/after-oauth", "/complete-profile", "/verify-otp"];
+  if (hiddenRoutes.some(route => pathname.startsWith(route))) {
+    return null;
   }
 
-  const navItems = [
-    { label: "Features", href: "#", color: "#F86510", textOnHover: "#ffffff" },
-    { label: "Pricing", href: "#", color: "#BBE96A", textOnHover: "#000000" },
-    { label: "About", href: "#", color: "#89CCF9", textOnHover: "#ffffff" },
-  ];
+  function handleLoginClick() {
+    if (navigating) return;
+    setNavigating(true);
+    router.push("/login");
+  }
+
+  async function handleLogout() {
+    setLoggingOut(true);
+    setOpenUserMenu(false);
+    setIsMobileMenuOpen(false);
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/");
+    router.refresh();
+  }
 
   return (
     <>
@@ -52,7 +96,7 @@ export default function Navbar({ user }: NavbarProps) {
               href="/"
               className="text-2xl font-semibold text-gray-900 bg-white rounded-full px-5 py-2 hover:bg-gray-50 transition shadow-sm cursor-pointer"
             >
-              Lex.
+              Placr.
             </Link>
           </div>
 
@@ -71,17 +115,76 @@ export default function Navbar({ user }: NavbarProps) {
                 color: isHovered ? item.textOnHover : undefined,
               };
 
+              if (item.hasDropdown) {
+                return (
+                  <div key={item.label} ref={featuresRef} className="relative">
+                    <button
+                      onClick={() => setFeaturesOpen(!featuresOpen)}
+                      onMouseEnter={() => setHovered(item.label)}
+                      onMouseLeave={() => setHovered(null)}
+                      className="bg-white rounded-full px-6 py-2 text-gray-500 text-sm font-medium shadow-sm cursor-pointer flex items-center gap-1"
+                      style={style}
+                    >
+                      {item.label}
+                      <ChevronDown className={clsx("w-3.5 h-3.5 transition-transform duration-200", featuresOpen && "rotate-180")} />
+                    </button>
+
+                    <AnimatePresence>
+                      {featuresOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -8 }}
+                          transition={{ duration: 0.18 }}
+                          className="absolute left-1/2 -translate-x-1/2 mt-3 w-[calc(100vw-2rem)] sm:w-72 max-w-72 bg-white rounded-2xl shadow-lg border border-gray-100 p-2 z-50"
+                        >
+                          {featureItems.map((fi) => {
+                            const Icon = fi.icon;
+                            return (
+                              <Link
+                                key={fi.href}
+                                href={fi.href}
+                                onClick={() => setFeaturesOpen(false)}
+                                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition group"
+                              >
+                                <div className="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center shrink-0 group-hover:bg-orange-100 transition">
+                                  <Icon className="w-4.5 h-4.5 text-orange-600" />
+                                </div>
+                                <div>
+                                  <div className="text-sm font-medium text-gray-900">{fi.label}</div>
+                                  <div className="text-xs text-gray-500">{fi.description}</div>
+                                </div>
+                              </Link>
+                            );
+                          })}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              }
+
               return (
-                <Link
+                <button
                   key={item.label}
-                  href={item.href}
+                  onClick={() => {
+                    const hash = item.href.includes("#") ? item.href.split("#")[1] : null;
+                    if (hash && pathname === "/") {
+                      const el = document.getElementById(hash);
+                      if (el) {
+                        el.scrollIntoView({ behavior: "smooth", block: "start" });
+                        return;
+                      }
+                    }
+                    router.push(item.href);
+                  }}
                   onMouseEnter={() => setHovered(item.label)}
                   onMouseLeave={() => setHovered(null)}
                   className="bg-white rounded-full px-6 py-2 text-gray-500 text-sm font-medium shadow-sm cursor-pointer"
                   style={style}
                 >
                   {item.label}
-                </Link>
+                </button>
               );
             })}
           </div>
@@ -89,15 +192,19 @@ export default function Navbar({ user }: NavbarProps) {
           {/* Right Side */}
           <div className="hidden md:flex items-center gap-3">
 
-            {/* Language */}
-            <button
-              className="bg-white rounded-full px-2 py-2 hover:bg-gray-50 transition shadow-sm cursor-pointer"
-            >
-              <img
-                src="https://img.icons8.com/?size=25&id=esGVrxg9VCJ1&format=png&color=000000"
-                alt="Language"
-              />
-            </button>
+            {/* India flag */}
+            <div className="w-9 h-9 rounded-full shadow-sm overflow-hidden flex items-center justify-center">
+              <svg width="36" height="36" viewBox="0 0 36 36">
+                <clipPath id="flag-circle"><circle cx="18" cy="18" r="18"/></clipPath>
+                <g clipPath="url(#flag-circle)">
+                  <rect width="36" height="12" fill="#FF9933"/>
+                  <rect y="12" width="36" height="12" fill="#FFFFFF"/>
+                  <rect y="24" width="36" height="12" fill="#138808"/>
+                  <circle cx="18" cy="18" r="4" fill="none" stroke="#000080" strokeWidth="0.8"/>
+                  <circle cx="18" cy="18" r="0.8" fill="#000080"/>
+                </g>
+              </svg>
+            </div>
 
             {/* Auth Section */}
             {user ? (
@@ -139,25 +246,28 @@ export default function Navbar({ user }: NavbarProps) {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => router.push("/dashboard")}
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded-lg cursor-pointer"
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setOpenUserMenu(false)}
+                        className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded-lg"
                       >
                         Dashboard
-                      </button>
+                      </Link>
 
-                      <button
-                        onClick={() => router.push("/pricing")}
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded-lg cursor-pointer"
+                      <Link
+                        href="/#pricing"
+                        onClick={() => setOpenUserMenu(false)}
+                        className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded-lg"
                       >
                         Upgrade Plan
-                      </button>
+                      </Link>
 
                       <button
                         onClick={handleLogout}
-                        className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-gray-100 rounded-lg cursor-pointer"
+                        disabled={loggingOut}
+                        className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-gray-100 rounded-lg cursor-pointer flex items-center gap-2 disabled:opacity-50"
                       >
-                        Logout
+                        {loggingOut ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Logging out...</> : "Logout"}
                       </button>
 
                     </motion.div>
@@ -169,28 +279,34 @@ export default function Navbar({ user }: NavbarProps) {
             ) : (
 
               <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: navigating ? 1 : 1.05 }}
+                whileTap={{ scale: navigating ? 1 : 0.95 }}
               >
-                <Link href="/login">
-                  <button
-                    className="
-                    bg-gray-900
-                    hover:bg-gray-800
-                    text-white
-                    px-6
-                    py-3
-                    rounded-full
-                    text-sm
-                    font-medium
-                    shadow-md
-                    transition
-                    cursor-pointer
-                    "
-                  >
-                    Login / Sign Up
-                  </button>
-                </Link>
+                <button
+                  onClick={handleLoginClick}
+                  disabled={navigating}
+                  className="
+                  bg-gray-900
+                  hover:bg-gray-800
+                  disabled:opacity-60
+                  disabled:cursor-not-allowed
+                  text-white
+                  px-6
+                  py-3
+                  rounded-full
+                  text-sm
+                  font-medium
+                  shadow-md
+                  transition
+                  cursor-pointer
+                  flex items-center gap-2
+                  "
+                >
+                  {navigating
+                    ? <><Loader2 className="w-4 h-4 animate-spin" /> Redirecting…</>
+                    : "Login / Sign Up"
+                  }
+                </button>
               </motion.div>
 
             )}
@@ -238,6 +354,7 @@ export default function Navbar({ user }: NavbarProps) {
       <AnimatePresence>
 
         {isMobileMenuOpen && (
+
           <>
             <motion.div
               initial={{ opacity: 0 }}
@@ -255,18 +372,72 @@ export default function Navbar({ user }: NavbarProps) {
               className="fixed top-0 left-0 right-0 bg-white z-40 md:hidden shadow-xl rounded-b-3xl overflow-hidden flex flex-col"
             >
 
-              <div className="flex flex-col gap-6 p-8 pt-24 pb-10">
+              <div className="flex flex-col gap-5 p-5 sm:p-8 pt-20 sm:pt-24 pb-8 sm:pb-10">
 
-                {navItems.map((item) => (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="text-2xl font-medium text-gray-900 hover:text-gray-600 cursor-pointer"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+                {navItems.map((item) => {
+                  if (item.hasDropdown) {
+                    return (
+                      <div key={item.label} className="flex flex-col">
+                        <button
+                          onClick={() => setMobileFeatures(!mobileFeatures)}
+                          className="text-2xl font-medium text-gray-900 hover:text-gray-600 cursor-pointer flex items-center gap-2 text-left"
+                        >
+                          {item.label}
+                          <ChevronRight className={clsx("w-5 h-5 transition-transform duration-200", mobileFeatures && "rotate-90")} />
+                        </button>
+
+                        <AnimatePresence>
+                          {mobileFeatures && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="flex flex-col gap-2 pl-4 pt-3">
+                                {featureItems.map((fi) => {
+                                  const Icon = fi.icon;
+                                  return (
+                                    <Link
+                                      key={fi.href}
+                                      href={fi.href}
+                                      onClick={() => setIsMobileMenuOpen(false)}
+                                      className="flex items-center gap-3 py-2 text-gray-700 hover:text-gray-900 transition"
+                                    >
+                                      <Icon className="w-5 h-5 text-orange-500" />
+                                      <span className="text-base font-medium">{fi.label}</span>
+                                    </Link>
+                                  );
+                                })}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={item.label}
+                      className="text-2xl font-medium text-gray-900 hover:text-gray-600 cursor-pointer text-left"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        const hash = item.href.includes("#") ? item.href.split("#")[1] : null;
+                        if (hash && pathname === "/") {
+                          setTimeout(() => {
+                            document.getElementById(hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                          }, 300);
+                          return;
+                        }
+                        router.push(item.href);
+                      }}
+                    >
+                      {item.label}
+                    </button>
+                  );
+                })}
 
                 <div className="h-px bg-gray-100 w-full" />
 
@@ -274,6 +445,7 @@ export default function Navbar({ user }: NavbarProps) {
 
                   <div className="flex flex-col gap-4">
 
+                    {/* User Info */}
                     <div className="flex items-center gap-3 border-b pb-4">
 
                       <div className="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center text-sm font-medium">
@@ -291,36 +463,44 @@ export default function Navbar({ user }: NavbarProps) {
 
                     </div>
 
-                    <button
-                      onClick={() => router.push("/dashboard")}
-                      className="w-full bg-gray-100 text-gray-900 px-6 py-3 rounded-full text-base font-medium hover:bg-gray-200 transition cursor-pointer"
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block w-full text-center bg-gray-100 text-gray-900 px-6 py-3 rounded-full text-base font-medium hover:bg-gray-200 transition"
                     >
                       Dashboard
-                    </button>
+                    </Link>
 
-                    <button
-                      onClick={() => router.push("/pricing")}
-                      className="w-full bg-gray-100 text-gray-900 px-6 py-3 rounded-full text-base font-medium hover:bg-gray-200 transition cursor-pointer"
+                    <Link
+                      href="/#pricing"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="block w-full text-center bg-gray-100 text-gray-900 px-6 py-3 rounded-full text-base font-medium hover:bg-gray-200 transition"
                     >
                       Upgrade Plan
-                    </button>
+                    </Link>
 
                     <button
                       onClick={handleLogout}
-                      className="w-full bg-black text-white px-6 py-3 rounded-full text-base font-medium hover:bg-gray-800 transition cursor-pointer"
+                      disabled={loggingOut}
+                      className="w-full bg-black text-white px-6 py-3 rounded-full text-base font-medium hover:bg-gray-800 transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
                     >
-                      Logout
+                      {loggingOut ? <><Loader2 className="w-4 h-4 animate-spin" /> Logging out...</> : "Logout"}
                     </button>
 
                   </div>
 
                 ) : (
 
-                  <Link href="/login">
-                    <button className="bg-black text-white px-6 py-3 rounded-full text-base font-medium transition shadow-md w-full cursor-pointer">
-                      Login / Sign Up
-                    </button>
-                  </Link>
+                  <button
+                    onClick={handleLoginClick}
+                    disabled={navigating}
+                    className="bg-black text-white px-6 py-3 rounded-full text-base font-medium transition shadow-md w-full cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {navigating
+                      ? <><Loader2 className="w-4 h-4 animate-spin" /> Redirecting…</>
+                      : "Login / Sign Up"
+                    }
+                  </button>
 
                 )}
               </div>

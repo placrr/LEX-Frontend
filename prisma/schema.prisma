@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+//////////////////////////////////////////////////////
+// AUTH MODELS (FROM LEX)
+//////////////////////////////////////////////////////
+
+model User {
+  id              String   @id @default(cuid())
+  name            String
+  email           String   @unique
+  rollNo          String   @unique
+  year            Int
+
+  role            Role     @default(USER)
+  plan            Plan     @default(FREE)
+
+  subscriptionEnd DateTime?
+  isVerified      Boolean  @default(false)
+
+  failedLogins    Int      @default(0)
+  lockedUntil     DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  refreshTokens   RefreshToken[]
+
+  resumes         Resume[]
+  atsReports      ATSReport[]
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  tokenHash String
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Plan {
+  FREE
+  PRO
+}
+
+//////////////////////////////////////////////////////
+// RESUME STORAGE
+//////////////////////////////////////////////////////
+
+model Resume {
+  id        String   @id @default(uuid())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fileUrl   String
+  text      String   @db.Text
+
+  hash      String   @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  atsReports ATSReport[]
+
+  @@index([userId])
+}
+
+//////////////////////////////////////////////////////
+// ATS ANALYSIS REPORT
+//////////////////////////////////////////////////////
+
+model ATSReport {
+  id        String   @id @default(uuid())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  resumeId  String
+  resume    Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  jobTitle        String?
+  jobDescription  String?   @db.Text
+
+  atsScore Int
+
+  strengths        Json
+  improvements     Json
+  recommendations  Json
+
+  keywordsFound     Json
+  suggestedKeywords Json
+
+  // Legacy sub-scores
+  industryScore   Int?
+  technicalScore  Int?
+  softSkillScore  Int?
+
+  // 7 genuine scoring dimensions
+  keywordMatchScore   Int?
+  semanticScore       Int?
+  skillsCoverageScore Int?
+  experienceScore     Int?
+  educationScore      Int?
+  formatScore         Int?
+
+  // Structured analysis blobs (JSON)
+  keywordMatches Json?
+  penalties      Json?
+  bonuses        Json?
+  scoreBreakdown Json?
+  domainMatch    String?
+
+  status ATSStatus @default(PROCESSING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chats ATSChat[]
+
+  @@index([userId])
+  @@index([resumeId])
+}
+
+//////////////////////////////////////////////////////
+// CHAT WITH RESUME
+//////////////////////////////////////////////////////
+
+model ATSChat {
+  id        String   @id @default(uuid())
+
+  reportId  String
+  report    ATSReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  role      ChatRole
+  message   String   @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([reportId])
+}
+
+//////////////////////////////////////////////////////
+// ENUMS
+//////////////////////////////////////////////////////
+
+enum ATSStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+}

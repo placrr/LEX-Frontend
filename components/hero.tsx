@@ -1,251 +1,88 @@
-"use client";
+import { ArrowRight, FileSearch, Mic, Briefcase } from "lucide-react"
+import Link from "next/link"
 
-import { motion } from "framer-motion";
-import Image from "next/image";
-import { CheckCircle } from "lucide-react";
-import { useRef, useState } from "react";
+const floatingTags = [
+  { label: "ATS Score: 87%", style: { left: "2%", top: "15%" }, delay: "1.2s" },
+  { label: "Keywords Matched", style: { right: "2%", top: "15%" }, delay: "1.4s" },
+]
 
-export default function Hero() {
-  const heroRef = useRef<HTMLElement | null>(null);
-  const [svgDone, setSvgDone] = useState(false);
-
+export default function Hero({ loggedIn = false }: { loggedIn?: boolean }) {
   return (
-    <section
-      ref={heroRef}
-      className="relative overflow-hidden bg-white py-32 min-h-screen"
-    >
-      <div className="relative mx-auto -mt-18 h-[300px] max-w-6xl">
-        {/* SVG NETWORK */}
-        <svg
-          className="absolute inset-0 h-full w-full"
-          viewBox="0 0 1200 300"
-          fill="none"
-        >
-          {/* MAIN LINE */}
-          <motion.line
-            x1="250"
-            y1="150"
-            x2="950"
-            y2="150"
-            stroke="#E5E7EB"
-            strokeWidth="2"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 1.6, ease: "easeInOut" }}
-          />
+    <section className="relative overflow-clip pt-28 pb-20 md:pt-36 md:pb-28">
+      {/* Background gradient orbs — fade in */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-purple-200/40 rounded-full blur-[120px] pointer-events-none animate-[fadeIn_1.5s_ease_both]" />
+      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-orange-200/30 rounded-full blur-[100px] pointer-events-none animate-[fadeIn_1.5s_0.3s_ease_both]" />
 
-          {/* LEFT TOP */}
-          <motion.line
-            x1="450"
-            y1="150"
-            x2="400"
-            y2="90"
-            stroke="#E5E7EB"
-            strokeWidth="2"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 1, delay: 0.6 }}
-          />
-          <motion.line
-            x1="400"
-            y1="90"
-            x2="300"
-            y2="90"
-            stroke="#E5E7EB"
-            strokeWidth="2"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 0.9, delay: 0.85 }}
-          />
-          <motion.circle
-            cx="400"
-            cy="90"
-            r="4"
-            fill="#A855F7"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 1.1, duration: 0.4 }}
-          />
+      <div className="relative max-w-6xl mx-auto px-4">
+        {/* Badge — appears first */}
+        <div className="flex justify-center mb-6 animate-[fadeUp_0.7s_0.1s_ease_both]">
+          <span className="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-1.5 text-xs font-medium text-gray-600 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            Built for KIIT Students
+          </span>
+        </div>
 
-          {/* LEFT BOTTOM */}
-          <motion.line
-            x1="500"
-            y1="150"
-            x2="440"
-            y2="210"
-            stroke="#E5E7EB"
-            strokeWidth="2"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 1, delay: 0.7 }}
-          />
-          <motion.line
-            x1="440"
-            y1="210"
-            x2="360"
-            y2="210"
-            stroke="#E5E7EB"
-            strokeWidth="2"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 0.9, delay: 0.95 }}
-          />
-          <motion.circle
-            cx="440"
-            cy="210"
-            r="4"
-            fill="#A855F7"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 1.2, duration: 0.4 }}
-          />
-
-          {/* RIGHT TOP */}
-          <motion.line
-            x1="700"
-            y1="150"
-            x2="800"
-            y2="60"
-            stroke="#E5E7EB"
-            strokeWidth="2"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 1, delay: 0.8 }}
-          />
-          <motion.line
-            x1="800"
-            y1="60"
-            x2="850"
-            y2="60"
-            stroke="#E5E7EB"
-            strokeWidth="2"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 0.9, delay: 1.05 }}
-          />
-          <motion.circle
-            cx="800"
-            cy="60"
-            r="4"
-            fill="#A855F7"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 1.3, duration: 0.4 }}
-          />
-
-          {/* RIGHT BOTTOM */}
-          <motion.line
-            x1="730"
-            y1="150"
-            x2="820"
-            y2="240"
-            stroke="#E5E7EB"
-            strokeWidth="2"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 1, delay: 0.9 }}
-          />
-          <motion.line
-            x1="820"
-            y1="240"
-            x2="880"
-            y2="240"
-            stroke="#E5E7EB"
-            strokeWidth="2"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{
-              duration: 0.9,
-              delay: 1.2,
-              onComplete: () => setSvgDone(true),
-            }}
-          />
-          <motion.circle
-            cx="820"
-            cy="240"
-            r="4"
-            fill="#A855F7"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 1.45, duration: 0.4 }}
-          />
-        </svg>
-
-        {/* CENTER CARD */}
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.4 }}
-          className="absolute left-1/2 top-1/2 z-20 h-24 w-24 -translate-x-1/2 -translate-y-1/2"
-        >
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 blur-2xl opacity-60" />
-          <div className="relative flex h-full w-full items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-xl">
-            <CheckCircle className="h-10 w-10 text-white" strokeWidth={2.5} />
-          </div>
-        </motion.div>
-
-        {/* FLOATING CARDS */}
-        <Card className="left-[280px] top-[40px]" delay={0.4} icon="💡" />
-        <Card className="left-[280px] top-[200px]" delay={0.45} icon="👥" />
-        <Card className="right-[280px] top-[40px]" delay={0.5} icon="⚡" />
-        <Avatar className="right-[280px] top-[200px]" delay={0.55} />
-        <Card
-          className="left-[250px] top-[150px] -translate-x-1/2 -translate-y-1/2"
-          delay={0.6}
-          icon="📦"
-        />
-        <Avatar
-          className="left-[950px] top-[150px] -translate-x-1/2 -translate-y-1/2"
-          delay={0.65}
-        />
-      </div>
-
-      {/* TEXT */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={svgDone ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.6 }}
-        className="mx-auto max-w-3xl text-center -mt-12"
-      >
-        <h1 className="text-5xl font-bold tracking-tight">
-          All-in-One Career <br /> Accelerator
+        {/* Heading — staggered lines */}
+        <h1 className="text-center text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-gray-900 leading-[1.08]">
+          <span className="block animate-[fadeUp_0.7s_0.2s_ease_both]">Your AI Career</span>
+          <span className="block bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 bg-clip-text text-transparent animate-[fadeUp_0.7s_0.35s_ease_both]">
+            Accelerator
+          </span>
         </h1>
-        <p className="mt-4 text-gray-500">
-          Resume fixes, skill gap analysis, and company-specific prep—tailored just
-          for KIIT students
+
+        {/* Subheading */}
+        <p className="mt-5 text-center text-gray-500 text-base md:text-lg max-w-xl mx-auto leading-relaxed animate-[fadeUp_0.6s_0.5s_ease_both]">
+          ATS resume scoring, AI mock interviews, and smart job matching
+          — all in one place. Land your dream role faster.
         </p>
-        <button className="mt-8 rounded-full bg-orange-500 px-8 py-3 text-white shadow-lg">
-          Request a Demo
-        </button>
-      </motion.div>
+
+        {/* CTA Buttons */}
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 animate-[fadeUp_0.6s_0.65s_ease_both]">
+          <Link
+            href="/ats"
+            className="bg-gray-900 hover:bg-gray-800 text-white px-7 py-3.5 rounded-full text-sm font-medium shadow-lg shadow-gray-900/20 transition flex items-center gap-2"
+          >
+            Try ATS Checker Free <ArrowRight className="w-4 h-4" />
+          </Link>
+          <Link
+            href={loggedIn ? "/dashboard" : "/login"}
+            className="bg-white hover:bg-gray-50 text-gray-700 px-7 py-3.5 rounded-full text-sm font-medium border border-gray-200 shadow-sm transition"
+          >
+            {loggedIn ? "Go to Dashboard" : "Sign Up with KIIT Email"}
+          </Link>
+        </div>
+
+        {/* Feature pills — each pill staggers */}
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
+          {[
+            { icon: FileSearch, label: "Resume ATS Checker", color: "text-purple-600 bg-purple-50 border-purple-200", delay: "0.8s" },
+            { icon: Mic, label: "AI Interview Prep", color: "text-blue-600 bg-blue-50 border-blue-200", delay: "0.9s" },
+            { icon: Briefcase, label: "Smart Job Matching", color: "text-orange-600 bg-orange-50 border-orange-200", delay: "1s" },
+          ].map((f) => (
+            <span
+              key={f.label}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium border animate-[fadeUp_0.5s_ease_both] ${f.color}`}
+              style={{ animationDelay: f.delay }}
+            >
+              <f.icon className="w-3.5 h-3.5" />
+              {f.label}
+            </span>
+          ))}
+        </div>
+
+        {/* Floating tags — decorative, xl only */}
+        <div className="hidden xl:block relative h-0">
+          {floatingTags.map((tag) => (
+            <div
+              key={tag.label}
+              className="absolute whitespace-nowrap bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full px-3 py-1.5 text-[11px] font-medium text-gray-600 shadow-sm animate-[fadeIn_0.5s_ease_both]"
+              style={{ ...tag.style, animationDelay: tag.delay }}
+            >
+              {tag.label}
+            </div>
+          ))}
+        </div>
+      </div>
     </section>
-  );
-}
-
-/* CARD */
-function Card({ className, delay, icon }: any) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay }}
-      className={`absolute flex h-16 w-16 items-center justify-center rounded-xl bg-white shadow-md ${className}`}
-    >
-      <span className="text-2xl">{icon}</span>
-    </motion.div>
-  );
-}
-
-/* AVATAR */
-function Avatar({ className, delay }: any) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay }}
-      className={`absolute h-16 w-16 overflow-hidden rounded-full bg-white shadow-md ${className}`}
-    >
-      <Image src="/avatar.jpg" alt="avatar" width={64} height={64} />
-    </motion.div>
-  );
+  )
 }
